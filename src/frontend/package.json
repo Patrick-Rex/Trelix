@@ -1,0 +1,40 @@
+{
+  "name": "trelix.client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run type-check && vite build",
+    "type-check": "vue-tsc --noEmit",
+    "preview": "vite preview",
+    "lint": "run-s \"lint:*\"",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "element-plus": "^2.14.5",
+    "vue": "^3.5.42"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "eslint": "^10.10.0",
+    "eslint-plugin-oxlint": "~1.83.0",
+    "eslint-plugin-vue": "~10.11.0",
+    "globals": "^17.12.0",
+    "npm-run-all2": "~8.0.4",
+    "oxlint": "~1.83.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.0",
+    "vite": "^8.3.0",
+    "vite-plugin-vue-devtools": "^8.2.1",
+    "vue-eslint-parser": "^10.4.1",
+    "vue-tsc": "~3.3.11"
+  },
+  "engines": {
+    "node": "24",
+    "npm": ">=10"
+  }
+}

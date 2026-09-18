@@ -1,0 +1,16 @@
+<Project Sdk="Aspire.AppHost.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>ca89378d-b247-4a87-a54b-44a168f4aa77</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.JavaScript" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\backend\Trelix.Server\Trelix.Server.csproj" />
+  </ItemGroup>
+
+</Project>
