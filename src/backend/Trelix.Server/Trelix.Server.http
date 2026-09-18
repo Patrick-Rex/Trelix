@@ -1,0 +1,12 @@
+@Trelix.Server_HostAddress = http://localhost:5199
+
+# Development 环境的健康检查；应用壳尚未接入业务 API。
+GET {{Trelix.Server_HostAddress}}/health
+Accept: text/plain
+
+###
+
+GET {{Trelix.Server_HostAddress}}/alive
+Accept: text/plain
+
+###

@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/backend/Trelix.Core/Trelix.Core.csproj" />
+    <Project Path="src/backend/Trelix.Server/Trelix.Server.csproj" />
+    <Project Path="src/backend/Trelix.ServiceDefaults/Trelix.ServiceDefaults.csproj" />
+    <Project Path="src/frontend/trelix.client.esproj">
+      <Build />
+      <Deploy />
+    </Project>
+    <Project Path="src/Trelix.AppHost/Trelix.AppHost.csproj" />
+  </Folder>
+  <Folder Name="/_files/">
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="nuget.config" />
+  </Folder>`
+</Solution>

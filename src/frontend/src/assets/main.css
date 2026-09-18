@@ -1,0 +1,53 @@
+:root {
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  color: #263832;
+  background: #f5f7f6;
+  font-size: 14px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --color-text: #263832;
+  --color-muted: #738079;
+  --color-surface: #ffffff;
+  --color-border: #e4eae6;
+  --el-color-primary: #237454;
+  --el-color-primary-light-3: #659e87;
+  --el-color-primary-light-5: #91baa9;
+  --el-color-primary-light-7: #bdd5cc;
+  --el-color-primary-light-8: #d3e3dd;
+  --el-color-primary-light-9: #e9f1ee;
+  --el-color-primary-dark-2: #1c5d43;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--el-color-primary);
+  outline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/Trelix.AppHost/Trelix.AppHost.csproj"
+  }
+}
