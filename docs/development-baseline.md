@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 文本文件格式 | UTF-8 无 BOM、LF、文件末尾换行；`.bat` / `.cmd` 使用 CRLF | [.editorconfig](../.editorconfig)、[.gitattributes](../.gitattributes)；修改后检查实际格式，不代表存量文件全部标准化 |
 | 项目架构 | 轻量模块化单体；Server 保留业务并按模块分目录，Core 承担通用技术基础设施，SDK 独立 | 前端、Server、Core、ServiceDefaults、AppHost、SDK、测试、示例及部署资产按 [目标项目结构](architecture.md#目标项目结构) 组织；Server 不再拆分分层类库 |
-| 通用技术基础设施 | Core 提供通用异常处理、中间件、序列化辅助和技术组件注册扩展 | 按 [职责边界](architecture.md#通用技术与业务基础设施边界) 与 Server、ServiceDefaults 分工；业务持久化、认证授权与发布通知留在 Server，SDK 不依赖 Core |
+| 通用技术基础设施 | Core 承担通用异常处理、中间件、序列化辅助和技术组件注册扩展 | 现有项目继承根构建配置，已移除模板空类，尚未接入通用组件；随实际功能按 [职责边界](architecture.md#通用技术与业务基础设施边界) 增加，业务持久化、认证授权与发布通知留在 Server，SDK 不依赖 Core |
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |
 | .NET 依赖管理 | 集中管理 SDK、构建属性、NuGet 包版本和包源 | 根目录配置，见下文；不启用预览 SDK，不自动跨主版本升级 |
@@ -55,4 +55,4 @@ SQLite 的选型边界参考 [官方说明](https://www.sqlite.org/whentouse.htm
 - 上游示例中的接口、数据库类型和注册方式需匹配本项目；避免重复注册可观测性，避免为轻量业务引入没有用途的抽象层。
 - SQLite 不支持数据库生成的并发 token，DateTimeOffset 等类型的比较/排序也有 provider 限制；建模和迁移时对照 [EF Core SQLite 限制](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/limitations) 验证。
 
-开发启动与检查命令见 [本地开发](local-development.md)，验收场景和验证证据要求见 [质量与验收](quality.md)。
+开发启动与检查命令见 [本地开发](local-development.md)，验收场景和验证证据要求见 [质量与验收](quality.md)，现有工程的构建属性、依赖方向及联调结果见 [M1 验收记录](verification/m1.md)。

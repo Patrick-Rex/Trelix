@@ -14,7 +14,7 @@
 
 `App.vue` 组合 `shared/components/layout` 中的布局和 `pages/WorkspacePage.vue`，工作区空状态位于 `features/workspace/components`。采用 TypeScript、Element Plus 与按需图标导入；组件样式由 `main.ts` 显式引入。
 
-当前没有业务 API 调用。登录、项目与环境、应用令牌和编辑器尚未接入，相关入口以禁用或说明呈现；Monaco、SQLite / EF Core 随对应功能接入。未引入 Router 或 Pinia。
+当前没有业务 API 调用。登录、项目与环境、应用令牌和编辑器尚未接入，相关入口以禁用或说明呈现；Monaco、SQLite / EF Core 随对应功能接入。未引入 Router 或 Pinia。开发运行与生产预览的应用壳、键盘和窄屏检查见 [M1 验收记录](../../docs/verification/m1.md)。
 
 ## Recommended IDE Setup
 
@@ -49,7 +49,7 @@ npm ci
 npm run dev
 ```
 
-独立启动时默认地址为 `https://localhost:58302`，可通过 `DEV_SERVER_PORT` 覆盖；后端需要另行启动。当前 `/health`、`/alive` 代理优先读取 `services__trelix-server__https__0`，未设置时回退到 `https://localhost:7112`。这两个端点由 Server 的 ServiceDefaults 在 Development 环境提供；可直接访问前端同源地址验证代理，页面不会自动轮询。
+独立启动时从 Vite 控制台获取 HTTPS 地址，端口可通过 `DEV_SERVER_PORT` 覆盖；后端需要另行启动。当前 `/health`、`/alive` 代理优先读取 `services__trelix-server__https__0`，未设置时使用 `vite.config.js` 中的开发回退地址；后端默认地址见其 `Properties/launchSettings.json` 的 `https` Profile。这两个端点由 Server 的 ServiceDefaults 在 Development 环境提供；可直接访问前端同源地址验证代理，页面不会自动轮询。
 
 ## 构建与检查
 
@@ -59,7 +59,15 @@ npm run dev
 npm run build
 ```
 
-构建先执行 `vue-tsc --noEmit`，类型检查成功后才执行 Vite 打包；按根指引只读取构建 error 与退出码。也可独立运行 `npm run type-check`。当前没有 `test` 或 `test:e2e` 脚本。
+构建先执行 `vue-tsc --noEmit`，类型检查成功后才执行 Vite 打包；按根指引只读取构建 error 与退出码。也可独立运行 `npm run type-check`。当前没有 `test` 或 `test:e2e` 脚本，`.esproj` 不声明未安装的测试框架。
+
+构建成功后预览 `dist`：
+
+```sh
+npm run preview
+```
+
+从 Vite 控制台获取预览地址；检查应用壳、侧栏展开/收起、Tab 与 Enter 键盘访问、Escape 收起以及窄屏无横向溢出。此预览用于核对前端产物，不代表 Server 静态资源集成或生产容器已经交付。
 
 无修改的 lint 检查：
 

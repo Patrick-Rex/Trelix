@@ -1,15 +1,19 @@
 # 本地开发
 
-本文统一维护跨前后端的环境准备、启动与联调说明。技术版本见 [技术基线](development-baseline.md)，开发约束见 [根指引](../AGENTS.md)。本文命令用于现有工程，代码核对不表示已经执行成功。
+本文统一维护跨前后端的环境准备、启动与联调说明。技术版本见 [技术基线](development-baseline.md)，开发约束见 [根指引](../AGENTS.md)。现有工程的实际验证环境、操作与结果见 [M1 验收记录](verification/m1.md)。
 
 ## 环境准备
 
 - .NET SDK 按根目录 [global.json](../global.json) 选择：最低 10.0.300，允许更高的稳定版 10.x，不跨大版本。
 - 前端使用 Node.js 24、npm 10+ 与现有 `package-lock.json`；安装及独立前端开发见 [前端 README](../src/frontend/README.md)。
 - ASP.NET Core HTTPS 开发证书须受本机信任，Vite 复用现有开发证书。
-- 使用本机 HTTP 代理时，确保 `localhost`、`127.0.0.1` 和 `::1` 绕过代理，否则 Aspire 面板可能无法连接本地资源服务。
+- 使用本机 HTTP 代理时，确保回环主机名及 IPv4、IPv6 回环地址绕过代理，否则 Aspire 面板可能无法连接本地资源服务。
 - SDK、公共构建属性、NuGet 版本与包源按 [统一配置约定](development-baseline.md#net-统一配置) 在根目录维护。
 - C# 语义分析技能随 Git 提供 Windows x64 预编译 EXE，使用本机 .NET 10 SDK，无需在 Trelix 内构建工具；使用前还原被分析项目的依赖。准备步骤、按名称定位符号的入口及平台限制见 [技能索引](../.agents/README.md#csharp-lsp-的使用)。该工具不是项目构建或启动的依赖。
+
+### 首次拉取后的本机准备
+
+证书信任、Aspire CLI 安装和代理环境变量的准备步骤见[项目 README](../README.md#首次拉取后的本机准备)。这些设置属于开发机环境，不随 Git 同步；完成准备后按下文统一启动。
 
 ## 统一启动与联调
 
@@ -23,7 +27,7 @@ dotnet run --project .\src\Trelix.AppHost\Trelix.AppHost.csproj --launch-profile
 
 在 Aspire 面板打开 `trelix-client` 的 HTTPS 地址访问管理界面。Vite 端口由 Aspire 分配，代理请求访问 AppHost 注入的 Server 地址；不要同时手动启动另一套前端。检查应用壳页面、侧栏切换，并直接访问前端地址下的 `/health`、`/alive`，确认 Development 环境的健康检查代理可用。页面当前不调用业务 API，原天气示例已移除。
 
-独立前端启动使用 `DEV_SERVER_PORT` 或默认 58302，后端须另行启动；具体操作见 [前端 README](../src/frontend/README.md#独立启动)。服务名、HTTPS 端点和启动顺序的实现约束见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md)。
+独立前端启动使用 `DEV_SERVER_PORT` 或 `vite.config.js` 中的默认端口，后端须另行启动；具体操作见 [前端 README](../src/frontend/README.md#独立启动)。服务名、HTTPS 端点和启动顺序的实现约束见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md)。
 
 以上用于本地开发。首版生产采用 Linux Docker 单容器统一交付，部署契约见 [生产部署](deployment.md)；当前生产打包与部署尚未实现。
 
