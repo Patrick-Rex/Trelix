@@ -12,10 +12,11 @@
 | `method-call-graph` | 获取方法调用图 | [method-call-graph.md](method-call-graph.md) |
 | `type-hierarchy` | 获取类型层级 | [type-hierarchy.md](type-hierarchy.md) |
 
-## 查找命令（基于命名空间）
+## 查找命令（无需行列）
 
 | 命令 | 说明 | 详细文档 |
 |------|------|----------|
+| `find-symbols` | 按名称查找源码符号及声明位置 | [find-symbols.md](find-symbols.md) |
 | `find-usings` | 查找使用某命名空间/类型的文件 | [find-usings.md](find-usings.md) |
 
 ## 代码分析命令
@@ -29,7 +30,9 @@
 
 | 参数 | 说明 |
 |------|------|
-| `<project>` | `.csproj`、`.sln`、`.slnx` 文件路径（必填） |
+| `<project>` | 位置查询和 find-symbols 支持 `.csproj`、`.sln`、`.slnx`；字段分析仅 `.csproj`；find-usings 建议使用 `.csproj` |
+| `--name <name>` | find-symbols 必填；按简单名称搜索 |
+| `--exact` / `--kind <kind>` / `--limit <n>` | find-symbols 的完整名称匹配、种类筛选、输出上限，见命令文档 |
 | `--file <file>` | 文件路径（LSP 命令必填） |
 | `--line <n>` | 行号，从 1 开始 |
 | `--column <n>` | 列号，从 1 开始 |

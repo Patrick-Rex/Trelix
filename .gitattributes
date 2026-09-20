@@ -4,3 +4,6 @@
 # Windows command scripts require CRLF.
 *.bat text eol=crlf
 *.cmd text eol=crlf
+
+# The prebuilt Roslyn CLI is versioned as a binary artifact.
+.agents/skills/csharp-lsp/scripts/roslyn-tool.exe binary

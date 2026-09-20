@@ -12,7 +12,7 @@ roslyn-tool never-assigned-fields <project> [--format json|text|markdown] [-o <f
 
 | 参数 | 说明 |
 |------|------|
-| `<project>` | `.csproj`、`.sln`、`.slnx` 文件路径（必填） |
+| `<project>` | `.csproj` 文件路径（必填），不接受解决方案 |
 | `--format <format>` | 输出格式：`json`、`text`（默认）、`markdown` |
 | `-o, --output <file>` | 输出到文件 |
 | `--verbose` | 输出详细信息 |
@@ -35,16 +35,15 @@ roslyn-tool never-assigned-fields ./MyProject.csproj --format json -o result.jso
 ```json
 [
   {
-    "file": "MyClass.cs",
-    "line": 15,
-    "field": "_count",
-    "type": "int",
-    "class": "MyClass"
+    "symbol": "MyProject.MyClass._count",
+    "location": "src/MyClass.cs:15"
   }
 ]
 ```
 
 ## 使用场景
+
+`location` 是文件路径和行号组成的字符串，运行时路径可能是绝对路径；示例使用项目相对路径。不能据此排除反射、序列化或框架注入产生的赋值。
 
 - 发现可能遗漏的初始化
 - 识别需要依赖注入但未配置的字段
