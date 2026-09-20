@@ -4,7 +4,32 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 首版包含 JSON/YAML/Tree 管理工作区、内置管理员 Cookie 登录、应用只读令牌、已发布配置读取与长轮询、.NET 配置 SDK。生产采用 Linux Docker 单容器、单实例，前后端统一交付，SQLite 挂载持久化；不依赖外部 IAM 或 SSO 平台。
 
-当前已建立 TypeScript + Element Plus 最小应用壳（侧边栏、顶部栏与工作区空状态），并移除前后端天气及 Vue 欢迎示例。上述首版业务能力按里程碑继续接入；当前工程能力见 [前端 README](src/frontend/README.md#当前应用壳)。
+M1 工程基础已完成，构建、TypeScript 类型检查、Aspire HTTPS 联调及最小应用壳验收见 [M1 验收记录](docs/verification/m1.md)。当前已建立 TypeScript + Element Plus 应用壳（侧边栏、顶部栏与工作区空状态），并移除前后端天气及 Vue 欢迎示例。上述首版业务能力按里程碑继续接入；当前界面能力见 [前端 README](src/frontend/README.md#当前应用壳)。
+
+## 首次拉取后的本机准备
+
+先按[环境准备](docs/local-development.md#环境准备)安装所需的 .NET SDK、Node.js 和 npm。开发依赖由 AppHost 启动流程还原，前端使用锁文件执行 `npm ci`。
+
+开发证书及其信任状态属于本机环境，不随 Git 同步。从项目根目录检查并信任 ASP.NET Core HTTPS 开发证书：
+
+```powershell
+dotnet dev-certs https --trust
+dotnet dev-certs https --check --trust
+```
+
+若 Aspire 仍提示缺少受信任的开发证书，使用与 AppHost SDK 同版本的 Aspire CLI 完成信任。尚未安装 CLI 时，可读取 `global.json` 中的版本安装：
+
+```powershell
+$aspireVersion = (Get-Content .\global.json -Raw | ConvertFrom-Json).'msbuild-sdks'.'Aspire.AppHost.Sdk'
+dotnet tool install --global Aspire.Cli --version $aspireVersion
+aspire certs trust
+```
+
+Windows 出现证书信任确认窗口时完成系统确认，再启动 AppHost。CLI 仅用于本机准备，统一启动仍按[本地开发说明](docs/local-development.md#统一启动与联调)执行。命令说明见 [Aspire 证书信任](https://aspire.dev/reference/cli/commands/aspire-certs-trust/)。
+
+如果设置了 `HTTP_PROXY` 或 `HTTPS_PROXY`，检查 `NO_PROXY` 是否覆盖回环主机名及 IPv4、IPv6 回环地址，追加时保留已有绕过项。缺少绕过设置可能导致 Aspire 本机资源连接失败；配置从当前终端和用户环境变量获取，不写入仓库。修改用户环境变量后，重新打开终端或重启 Visual Studio，使新启动的 AppHost 继承设置。
+
+准备完成后，在 Visual Studio 中将 `Trelix.AppHost` 设为启动项目，或使用[统一启动命令](docs/local-development.md#统一启动与联调)。从 Aspire 面板打开 `trelix-client` 的 HTTPS 地址，检查页面与侧栏，并通过前端地址下的 `/health`、`/alive` 验证代理；两者应返回 `Healthy`。
 
 ## 文档入口
 
@@ -39,4 +64,4 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 解决方案与通用配置位于包含 `Trelix.slnx` 的根目录，工作范围限于此目录。管理界面与 Server 统一交付，SDK 作为独立类库供业务应用引用，不依赖 Server 的业务程序集或数据库。
 
-开发命令统一维护在 [本地开发](docs/local-development.md)，前端独立操作见 [前端 README](src/frontend/README.md)。文档与规则的更新遵循 [维护规则](docs/README.md#文档维护规则)。
+启动与构建命令统一维护在 [本地开发](docs/local-development.md)，前端独立操作见 [前端 README](src/frontend/README.md)。文档与规则的更新遵循 [维护规则](docs/README.md#文档维护规则)。
