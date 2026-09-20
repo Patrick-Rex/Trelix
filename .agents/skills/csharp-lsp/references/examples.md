@@ -10,6 +10,7 @@
 - [场景 4: 跨文件引用追踪](#场景-4-跨文件引用追踪)
 - [场景 5: 查找接口实现](#场景-5-查找接口实现)
 - [场景 6: 查找使用某命名空间的文件](#场景-6-查找使用某命名空间的文件)
+- [场景 7: 只知道符号名称](#场景-7-只知道符号名称)
 
 ---
 
@@ -159,6 +160,15 @@ roslyn-tool find-usings ./MyProject.csproj \
 ---
 
 ## 工作流示例
+
+### 场景 7: 只知道符号名称
+
+```bash
+roslyn-tool find-symbols ./MyProject.csproj --name OrderService --exact --kind type
+roslyn-tool find-symbols ./MySolution.slnx --name ProcessOrder --exact --kind method --limit 50
+```
+
+检查退出码、`workspaceIncomplete` 和 `truncated`，根据 `project`、`displayName`、`file` 选择声明，再将返回的 `file`、`line`、`column` 传给 `symbol-info` 或 `find-references`。重载方法和 partial 类型可能返回多个位置，不直接选第一个。可执行的 PowerShell 串联示例见 [SKILL.md](../SKILL.md#快速使用示例)。
 
 ### 完整的代码审查流程
 

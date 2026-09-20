@@ -48,6 +48,7 @@ SQLite 的选型边界参考 [官方说明](https://www.sqlite.org/whentouse.htm
 ## 采用上游技能时的项目约束
 
 - `.agents/skills` 用于开发 Trelix。根目录与分模块 `AGENTS.md` 是项目开发 agent 的入口，不是技能作者或插件维护者指引。
+- `csharp-lsp` 仅分发 Git 跟踪的 Windows x64 预编译 EXE 与技能文档，工具源码在独立工程维护；产物使用本机 .NET 10 SDK，不嵌入 Trelix 解决方案或依赖配置。支持按名称查找声明并衔接位置查询；版本、哈希和使用边界见 [技能说明](../.agents/skills/csharp-lsp/SKILL.md#工具路径)。
 - 上游 Vue 技能覆盖 TypeScript、Router、Pinia 和测试；按本项目已经确认与安装的能力使用，保持 Composition API。技能安装不表示采用对应依赖。
 - 上游 .NET Web API 技能允许 Controllers 与 Minimal APIs，本项目保持 Controllers。EF 查询优化技能只在相关查询任务中启用。
 - 编译仅读取 error 与退出码，覆盖上游“检查零 warning”的通用要求。测试结果应照常检查失败与统计；执行前核对实际测试项目、依赖和脚本，未接入或零测试不能报告通过。

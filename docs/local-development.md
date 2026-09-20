@@ -9,7 +9,7 @@
 - ASP.NET Core HTTPS 开发证书须受本机信任，Vite 复用现有开发证书。
 - 使用本机 HTTP 代理时，确保 `localhost`、`127.0.0.1` 和 `::1` 绕过代理，否则 Aspire 面板可能无法连接本地资源服务。
 - SDK、公共构建属性、NuGet 版本与包源按 [统一配置约定](development-baseline.md#net-统一配置) 在根目录维护。
-- 使用 C# 语义分析技能时，需另行提供本机 Roslyn CLI；可执行文件不随仓库分发，准备步骤见 [技能索引](../.agents/README.md#csharp-lsp-的使用)。该工具不是项目构建或启动的依赖。
+- C# 语义分析技能随 Git 提供 Windows x64 预编译 EXE，使用本机 .NET 10 SDK，无需在 Trelix 内构建工具；使用前还原被分析项目的依赖。准备步骤、按名称定位符号的入口及平台限制见 [技能索引](../.agents/README.md#csharp-lsp-的使用)。该工具不是项目构建或启动的依赖。
 
 ## 统一启动与联调
 

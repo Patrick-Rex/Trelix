@@ -17,7 +17,7 @@
 | [vue-router-best-practices](skills/vue-router-best-practices/SKILL.md) | Router 导航和路由生命周期 | 使用 Router 时读取；当前没有该依赖 |
 | [vue-pinia-best-practices](skills/vue-pinia-best-practices/SKILL.md) | Pinia store 与共享状态 | 使用 Pinia 时读取；当前没有该依赖 |
 | [dotnet-webapi](skills/dotnet-webapi/SKILL.md) | API、DTO、OpenAPI、错误处理 | 保持 Controllers 与内置 OpenAPI |
-| [csharp-lsp](skills/csharp-lsp/SKILL.md) | C# 符号、引用、定义、实现、调用图与字段分析 | 手动提供的 Roslyn CLI；为重构提供语义影响分析 |
+| [csharp-lsp](skills/csharp-lsp/SKILL.md) | 按名称查找 C# 符号，以及引用、定义、实现、调用图与字段分析 | Git 跟踪的 Windows x64 预编译 CLI，依赖本机 .NET 10 SDK；为重构提供语义影响分析 |
 | [csharp-refactoring](skills/csharp-refactoring/SKILL.md) | 保持行为的 C# 重构 | 项目边界为 `Trelix.slnx` 所在目录 |
 | [optimizing-ef-core-queries](skills/optimizing-ef-core-queries/SKILL.md) | EF 查询性能与 N+1 排查 | 需要判断项目技术基线，这个技能参考使用 |
 | [configuring-opentelemetry-dotnet](skills/configuring-opentelemetry-dotnet/SKILL.md) | 追踪、指标、日志与 OTLP | 复用 ServiceDefaults 已有注册 |
@@ -28,20 +28,20 @@
 
 无需每次读取所有技能。可自然描述任务，也可显式指定，如“使用 vue-best-practices 实现配置编辑页面”或“使用 dotnet-webapi 增加配置读取端点”。项目 agent 指引负责将任务路由到相关技能。
 
-Dump 分析可直接指定：“使用 dotnet-dump-analysis 分析 `C:\dumps\coredump`，定位内存增长原因。”已有文件时先做堆统计、引用链追踪和多时点对比；需要采集时按技能内的 [采集与进阶诊断](skills/dotnet-dump-analysis/references/collection.md) 操作。
+Dump 分析可直接指定：“使用 dotnet-dump-analysis 分析 `<dump-file>`，定位内存增长原因。”将占位符替换为实际文件；已有文件时先做堆统计、引用链追踪和多时点对比，需要采集时按技能内的 [采集与进阶诊断](skills/dotnet-dump-analysis/references/collection.md) 操作。
 
 ## csharp-lsp 的使用
 
-Roslyn 可执行文件仅在本机保存，由根 `.gitignore` 排除；仓库保留技能说明和参考文档。首次克隆后，使用本技能前需自行提供可信的对应平台工具，放入 `.agents/skills/csharp-lsp/scripts/`：Windows 为 `roslyn-tool.exe`，Linux 为 `roslyn-tool`。缺少工具时应说明无法执行语义查询，不自动下载来源不明的二进制。
+仓库随 Git 跟踪预编译的 Windows x64 `roslyn-tool.exe` 与技能文档；工具源码在独立 `csharp-lsp` 工程维护，Trelix 不嵌入该工程。使用时准备项目基线要求的 .NET 10 SDK，并先还原被分析项目的依赖；无需在 Trelix 内构建工具。产物版本、大小、哈希及平台限制见 [工具路径](skills/csharp-lsp/SKILL.md#工具路径)。
 
 在 Trelix 根目录运行：
 
 ```powershell
 $roslynTool = (Resolve-Path '.\.agents\skills\csharp-lsp\scripts\roslyn-tool.exe').Path
 & $roslynTool --help
-& $roslynTool symbol-info --help
+& $roslynTool find-symbols --help
 ```
 
-单项目查询传入相关 `.csproj`（例如 `src/backend/Trelix.Server/Trelix.Server.csproj`），跨项目查询传入根目录的 `Trelix.slnx`。源码路径优先使用绝对路径，行列从 1 开始且应落在目标标识符上。完整示例见 [csharp-lsp](skills/csharp-lsp/SKILL.md)。
+单项目查询传入相关 `.csproj`（例如 `src/backend/Trelix.Server/Trelix.Server.csproj`）；位置查询和 `find-symbols` 支持根目录的 `Trelix.slnx`。只知道名称时先用 `find-symbols --name <name>`，再把返回的声明位置传给引用或类型查询。源码路径优先使用绝对路径，行列从 1 开始且应落在目标标识符上。字段分析只接收 `.csproj`；`find-usings` 对解决方案仅分析第一个加载项目。完整示例与加载诊断处理见 [csharp-lsp](skills/csharp-lsp/SKILL.md)。
 
 这是项目内的语义分析 CLI，不会自动注册 LSP/MCP 服务，也不执行重命名；实际重构与验证由 `csharp-refactoring` 指导。符号查询默认 JSON，字段分析默认 text，推荐显式传入 `--format json`。`-o` 仅适用于两个字段分析命令。

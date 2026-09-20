@@ -55,10 +55,6 @@ appsettings.*.local.json
 *.pem
 *.key
 
-# Locally supplied Roslyn analysis tools
-/.agents/skills/csharp-lsp/scripts/roslyn-tool
-/.agents/skills/csharp-lsp/scripts/roslyn-tool.exe
-
 # Operating system files
 .DS_Store
 Thumbs.db

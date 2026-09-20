@@ -13,7 +13,7 @@
 
 ## 技能与模块入口
 
-- C# 符号、引用、实现与调用关系：读 [csharp-lsp](../../.agents/skills/csharp-lsp/SKILL.md)，优先使用随附 Windows Roslyn CLI 完成语义查询；跨项目分析使用根目录的 `Trelix.slnx`。
+- C# 符号、引用、实现与调用关系：读 [csharp-lsp](../../.agents/skills/csharp-lsp/SKILL.md)，使用随 Git 提供的 Windows x64 Roslyn CLI 和本机 .NET 10 SDK；只知道名称时先用 `find-symbols` 定位，跨项目查询及命令覆盖范围以技能说明为准，不在本项目内构建工具。
 - 保持行为不变的 C# 重构：读 [csharp-refactoring](../../.agents/skills/csharp-refactoring/SKILL.md)。
 - 执行 .NET 测试：读 [run-tests](../../.agents/skills/run-tests/SKILL.md)，按需要读取配套的 platform-detection 与 filter-syntax。当前没有测试项目；接入工具链遵循根指引，不复制上游测试框架偏好。
 - Server 的 HTTP、存储和认证实现：读 [Server 指引](Trelix.Server/AGENTS.md)。
