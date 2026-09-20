@@ -1,32 +1,33 @@
+using Trelix.Server.Infrastructure;
+using Trelix.Server.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
-
 builder.AddServiceDefaults();
-
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddTrelix(builder.Environment);
 
 var app = builder.Build();
-
-app.MapDefaultEndpoints();
-
-app.UseDefaultFiles();
-app.MapStaticAssets();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+await using (var scope = app.Services.CreateAsyncScope())
 {
-    app.MapOpenApi();
+    await scope.ServiceProvider.GetRequiredService<DatabaseInitializer>().InitializeAsync(app.Lifetime.ApplicationStopping);
 }
 
+app.UseExceptionHandler(new ExceptionHandlerOptions { SuppressDiagnosticsCallback = _ => true });
+app.UseStatusCodePages();
 app.UseHttpsRedirection();
-
+app.UseDefaultFiles();
+app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
+app.MapDefaultEndpoints();
+app.MapStaticAssets().AllowAnonymous();
+if (app.Environment.IsDevelopment())
+    app.MapOpenApi().AllowAnonymous();
 
 app.MapControllers();
-
-app.MapFallbackToFile("/index.html");
-
+// Unknown API routes must never resolve to the SPA document.
+app.MapFallback("/api/{**path}", () => Results.NotFound()).AllowAnonymous();
+app.MapFallbackToFile("/index.html").AllowAnonymous();
 app.Run();
+
+public partial class Program;

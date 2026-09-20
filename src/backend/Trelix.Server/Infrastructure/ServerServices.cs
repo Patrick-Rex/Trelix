@@ -1,0 +1,88 @@
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.DataProtection.Repositories;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Middleware;
+using Trelix.Server.Features.Authentication;
+using Trelix.Server.Features.ApplicationTokens;
+using Trelix.Server.Infrastructure.Authentication;
+using Trelix.Server.Infrastructure.Middleware;
+using Trelix.Server.Persistence;
+using Trelix.Server.Persistence.Entities;
+
+namespace Trelix.Server.Infrastructure;
+
+public static class ServerServices
+{
+    public static IServiceCollection AddTrelix(this IServiceCollection services, IHostEnvironment environment)
+    {
+        services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<StorageSettings>();
+        services.AddDbContext<TrelixDbContext>((provider, options) =>
+            options.UseSqlite(provider.GetRequiredService<StorageSettings>().ConnectionString));
+        services.AddScoped<DatabaseInitializer>();
+        services.AddScoped<IPasswordHasher<Administrator>, PasswordHasher<Administrator>>();
+        services.AddScoped<AdministratorSessionService>();
+        services.AddScoped<ApplicationTokenService>();
+        services.AddScoped<AdministratorCookieEvents>();
+        services.AddScoped<ManagementAntiforgeryFilter>();
+        services.AddScoped<IAuthorizationHandler, ApplicationScopeHandler>();
+        services.AddHttpContextAccessor();
+
+        services.AddDataProtection().SetApplicationName("Trelix");
+        services.AddOptions<KeyManagementOptions>().Configure<StorageSettings, ILoggerFactory>((options, storage, logs) =>
+            options.XmlRepository = new FileSystemXmlRepository(new DirectoryInfo(Path.Combine(storage.DataDirectory, "keys")), logs));
+
+        var securePolicy = environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+        services.AddAntiforgery(options =>
+        {
+            options.HeaderName = AuthenticationConstants.CsrfHeader;
+            options.Cookie.Name = "Trelix.Antiforgery";
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.SecurePolicy = securePolicy;
+        });
+        services.AddAuthentication(AuthenticationConstants.AdministratorScheme)
+            .AddCookie(AuthenticationConstants.AdministratorScheme, options =>
+            {
+                options.Cookie.Name = "Trelix.Admin";
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = SameSiteMode.Strict;
+                options.Cookie.SecurePolicy = securePolicy;
+                options.ExpireTimeSpan = AuthenticationConstants.SessionLifetime;
+                options.SlidingExpiration = false;
+                options.EventsType = typeof(AdministratorCookieEvents);
+            })
+            .AddScheme<AuthenticationSchemeOptions, ApplicationTokenHandler>(AuthenticationConstants.ApplicationScheme, _ => { });
+        services.AddOptions<CookieAuthenticationOptions>(AuthenticationConstants.AdministratorScheme)
+            .Configure<TimeProvider>((options, time) => options.TimeProvider = time);
+        services.AddAuthorizationBuilder()
+            .AddPolicy(AuthenticationConstants.AdministratorPolicy, policy => policy
+                .AddAuthenticationSchemes(AuthenticationConstants.AdministratorScheme).RequireAuthenticatedUser().RequireClaim(System.Security.Claims.ClaimTypes.NameIdentifier, "1"))
+            .AddPolicy(AuthenticationConstants.ApplicationPolicy, policy => policy
+                .AddAuthenticationSchemes(AuthenticationConstants.ApplicationScheme).RequireAuthenticatedUser());
+
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+        });
+        services.AddProblemDetails(options => options.CustomizeProblemDetails = ApiErrors.Customize);
+        services.AddExceptionHandler<ApiOperationExceptionHandler>();
+        services.AddExceptionHandler<SafeExceptionHandler>();
+        services.AddControllers(options => options.Filters.AddService<ManagementAntiforgeryFilter>())
+            .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = context =>
+                ApiErrors.Result(context.HttpContext, 400, "invalid_request", "请求字段缺失或格式无效。"));
+        services.AddOpenApi("admin");
+        services.AddOpenApi("application");
+        return services;
+    }
+}

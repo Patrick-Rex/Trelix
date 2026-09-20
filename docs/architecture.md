@@ -201,6 +201,8 @@ erDiagram
 
 唯一性与关联约束由数据库保障，API 校验提供清楚的错误反馈。时间在服务端按 UTC 处理，SQLite 映射必须支持所需比较与排序；接口时间表示与数据库存储表示分别设计。
 
+当前 EF 模型将 UTC 时间转换为 SQLite INTEGER ticks，API 仍使用 DateTimeOffset。草稿正文及修订保存在 ConfigFile，Release 以 `(ConfigFileId, Version)` 为复合主键；当前发布指向与回滚来源通过同一文件内的复合外键关联。Administrator 的主键受单例检查约束保护；AdministratorSession 保存会话到期时间及管理员安全标记，每次 Cookie 请求重新核验。Data Protection 密钥和 SQLite 统一存放在外部可配置的数据目录，启动与迁移操作见 [本地开发](local-development.md#server-存储与首次初始化)。
+
 ### 修订与发布身份
 
 草稿修订用于识别被编辑和选中发布的内容；发布版本用于识别应用可读取的历史内容；并发基准用于防止过期调用覆盖新操作。三者不能用前端请求时间或进程内自增计数代替。

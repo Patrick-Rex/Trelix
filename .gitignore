@@ -43,6 +43,11 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Local configuration and credentials
+.trelix-data/
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
 *.local
 .env
 .env.*

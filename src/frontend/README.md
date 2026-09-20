@@ -14,7 +14,7 @@
 
 `App.vue` 组合 `shared/components/layout` 中的布局和 `pages/WorkspacePage.vue`，工作区空状态位于 `features/workspace/components`。采用 TypeScript、Element Plus 与按需图标导入；组件样式由 `main.ts` 显式引入。
 
-当前没有业务 API 调用。登录、项目与环境、应用令牌和编辑器尚未接入，相关入口以禁用或说明呈现；Monaco、SQLite / EF Core 随对应功能接入。未引入 Router 或 Pinia。开发运行与生产预览的应用壳、键盘和窄屏检查见 [M1 验收记录](../../docs/verification/m1.md)。
+当前界面没有业务 API 调用。登录、项目与环境、应用令牌和编辑器尚未接入界面，相关入口以禁用或说明呈现；Monaco 随编辑功能接入。Server 已接入 SQLite / EF Core 和认证基础，首次启动后端前须完成 [外部初始化配置](../../docs/local-development.md#server-存储与首次初始化)。未引入 Router 或 Pinia。开发运行与生产预览的应用壳、键盘和窄屏检查见 [M1 验收记录](../../docs/verification/m1.md)。
 
 ## Recommended IDE Setup
 
