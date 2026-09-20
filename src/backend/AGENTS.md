@@ -15,7 +15,7 @@
 
 - C# 符号、引用、实现与调用关系：读 [csharp-lsp](../../.agents/skills/csharp-lsp/SKILL.md)，使用随 Git 提供的 Windows x64 Roslyn CLI 和本机 .NET 10 SDK；只知道名称时先用 `find-symbols` 定位，跨项目查询及命令覆盖范围以技能说明为准，不在本项目内构建工具。
 - 保持行为不变的 C# 重构：读 [csharp-refactoring](../../.agents/skills/csharp-refactoring/SKILL.md)。
-- 执行 .NET 测试：读 [run-tests](../../.agents/skills/run-tests/SKILL.md)，按需要读取配套的 platform-detection 与 filter-syntax。当前没有测试项目；接入工具链遵循根指引，不复制上游测试框架偏好。
+- 执行 .NET 测试：读 [run-tests](../../.agents/skills/run-tests/SKILL.md)，按需要读取配套的 platform-detection 与 filter-syntax。Server 测试已采用 xUnit v3 + MTP 与真实 SQLite，命令和范围见 [自动化测试](../../docs/local-development.md#server-自动化测试)；不复制上游测试框架偏好。
 - Server 的 HTTP、存储和认证实现：读 [Server 指引](Trelix.Server/AGENTS.md)。
 - Core 的通用技术实现：先核对 [职责边界](../../docs/architecture.md#通用技术与业务基础设施边界)，按具体能力选择技能；不将业务模型、持久化或权限规则移入 Core。
 - 遥测、健康检查、服务发现与 HTTP 弹性：读 [ServiceDefaults 指引](Trelix.ServiceDefaults/AGENTS.md)。

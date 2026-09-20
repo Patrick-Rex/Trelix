@@ -1,6 +1,6 @@
 # 本地开发
 
-本文统一维护跨前后端的环境准备、启动与联调说明。技术版本见 [技术基线](development-baseline.md)，开发约束见 [根指引](../AGENTS.md)。现有工程的实际验证环境、操作与结果见 [M1 验收记录](verification/m1.md)。
+本文统一维护跨前后端的环境准备、启动与联调说明。技术版本见 [技术基线](development-baseline.md)，开发约束见 [根指引](../AGENTS.md)。基础工程联调见 [M1 验收记录](verification/m1.md)，存储与认证验证见 [M2 验收记录](verification/m2.md)。
 
 ## 环境准备
 
@@ -15,9 +15,39 @@
 
 证书信任、Aspire CLI 安装和代理环境变量的准备步骤见[项目 README](../README.md#首次拉取后的本机准备)。这些设置属于开发机环境，不随 Git 同步；完成准备后按下文统一启动。
 
+## Server 存储与首次初始化
+
+Server 的 User Secrets 标识已在项目中配置。首次启动前，用 IDE 的“管理用户机密”或 `dotnet user-secrets` 在 Server 项目对应的外部机密存储中配置以下键，不把实际值写入仓库或调用样例：
+
+| 配置键 | 用途 |
+| --- | --- |
+| `Trelix:Administrator:Username` | 首个管理员账号名，1–128 个字符，无首尾空白 |
+| `Trelix:Administrator:Password` | 首个管理员密码，12–1024 个字符 |
+| `Trelix:Storage:DataDirectory` | SQLite 与 Data Protection 密钥的存放目录；开发环境可省略，默认使用 Server 内容根目录下被 Git 忽略的 `.trelix-data` |
+
+环境变量使用双下划线替代冒号。非 Development 环境必须显式配置数据目录。程序在开始处理请求前应用 EF 迁移，再检查是否需要初始化管理员；已有管理员时忽略初始化凭证，可从外部配置移除。缺少有效首次凭证时启动失败，不创建默认账号。
+
+数据目录包含 `trelix.db`、SQLite 运行时伴随文件及 `keys` 子目录。保持同一目录可在重启后恢复数据与未过期会话；不要清空密钥目录。目录包含敏感认证数据，不应提交、公开共享或作为静态资源发布。
+
+管理员 API 样例见 [Trelix.Server.http](../src/backend/Trelix.Server/Trelix.Server.http)。HTTP 客户端先获取 `/api/admin/auth/antiforgery` 并保存其 Cookie，登录请求携带返回的 `X-Trelix-CSRF` 请求令牌。登录成功后重新获取绑定管理员身份的防伪造令牌，供退出及后续管理写请求使用。`/api/admin/auth/session` 查询当前会话；会话固定 8 小时、不自动续期，退出后旧 Cookie 失效。Development 环境提供 `/openapi/admin.json` 和 `/openapi/application.json`；应用分组随后续分发 API 接入，当前无公开应用读取入口。
+
+令牌管理使用 `/api/admin/application-tokens`，支持创建、分页查询、单个查询，以及 `/{id}/revoke`、`/{id}/rotate`。创建接受 `name`、`expiresAt` 与 `scopes`，每个 scope 包含 `projectId` 和 `environmentId`；名称最多 200 字符，范围为 1–100 个且不得重复环境，服务端验证归属。分页默认每页 50 条，最多 100 条。轮换接受新的 `expiresAt`，成功返回 201 和新令牌资源位置；原文只在创建或轮换响应的 `secret` 中返回一次。管理列表包含已过期和撤销记录，客户端按元数据展示状态。
+
+M2 未提供项目/环境管理 API，因此空数据库不能创建有效范围的应用令牌；端到端业务使用从 M3 接入资源管理开始。M2 集成测试通过测试夹具建立资源，再验证真实令牌管理 API 与认证方案；不要向正常运行数据库手工植入生产资源来替代后续管理功能。
+
+EF 工具版本在 [.NET 工具清单](../.config/dotnet-tools.json) 固定，迁移位于 [Persistence/Migrations](../src/backend/Trelix.Server/Persistence/Migrations)。修改模型后，从项目根目录执行：
+
+```powershell
+dotnet tool restore
+dotnet build .\src\backend\Trelix.Server\Trelix.Server.csproj --nologo -v:q -clp:ErrorsOnly
+dotnet ef migrations add <MigrationName> --project .\src\backend\Trelix.Server\Trelix.Server.csproj --output-dir Persistence/Migrations --no-build
+```
+
+`<MigrationName>` 替换为本次迁移名。设计时工厂只用于生成模型迁移，不初始化管理员、不连接运行数据库；实际迁移在 Server 启动时执行。生成的文件仍须按技术基线检查 UTF-8 无 BOM、LF 和末尾换行。
+
 ## 统一启动与联调
 
-以下命令从包含 `Trelix.slnx` 的项目根目录执行：
+先完成上述 Server 外部初始化配置；以下命令从包含 `Trelix.slnx` 的项目根目录执行：
 
 ```powershell
 dotnet run --project .\src\Trelix.AppHost\Trelix.AppHost.csproj --launch-profile https
@@ -44,3 +74,15 @@ dotnet build .\Trelix.slnx --nologo -v:q -clp:ErrorsOnly
 Server 保留对前端 `.esproj` 的构建引用，后端构建可能涉及 Node/npm 工具链。后端编译成功不表示前端生产构建或类型检查通过；前端命令见 [前端 README](../src/frontend/README.md#构建与检查)，验收要求见 [前端指引](../src/frontend/AGENTS.md#命令与验证)。
 
 执行测试与类型检查前，核对实际测试项目及前端 `package.json` 中的依赖和脚本；不能将未接入检查或零测试报告为通过。行为与文档验收见 [质量与验收](quality.md)。纯文档变更只检查内容、链接与文件格式，无需构建业务项目。
+
+### Server 自动化测试
+
+[Server 测试项目](../tests/Trelix.Server.Tests/Trelix.Server.Tests.csproj) 使用 xUnit v3 与 MTP，根 `global.json` 已选择原生 MTP 模式。从项目根目录执行：
+
+```powershell
+dotnet test --project .\tests\Trelix.Server.Tests\Trelix.Server.Tests.csproj --verbosity quiet
+```
+
+该命令默认构建项目；仅在当前代码已构建时追加 `--no-build`。原生 MTP 使用 `--project`，不使用 VSTest 的位置项目参数或桥接分隔符。构建输出按根指引仅检查 error 与退出码，测试检查实际通过、失败和跳过数量。
+
+测试通过 WebApplicationFactory 在进程内启动 Server，使用独立 SQLite 文件、Data Protection 目录及运行时随机凭证，不需要真实管理员机密或开放监听端口。临时文件位于 Git 忽略的 `artifacts/m2-tests`，正常结束后清理；测试用授权探针只注册到测试宿主，不包含在 Server 发布程序集。重启验证关闭并重新创建宿主、重开同一数据库和密钥目录，不替代 M6 的真实进程与容器恢复验证。

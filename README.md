@@ -4,7 +4,7 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 首版包含 JSON/YAML/Tree 管理工作区、内置管理员 Cookie 登录、应用只读令牌、已发布配置读取与长轮询、.NET 配置 SDK。生产采用 Linux Docker 单容器、单实例，前后端统一交付，SQLite 挂载持久化；不依赖外部 IAM 或 SSO 平台。
 
-M1 工程基础已完成，构建、TypeScript 类型检查、Aspire HTTPS 联调及最小应用壳验收见 [M1 验收记录](docs/verification/m1.md)。当前已建立 TypeScript + Element Plus 应用壳（侧边栏、顶部栏与工作区空状态），并移除前后端天气及 Vue 欢迎示例。上述首版业务能力按里程碑继续接入；当前界面能力见 [前端 README](src/frontend/README.md#当前应用壳)。
+M1 工程基础与 M2 存储认证已完成，分别见 [M1 验收记录](docs/verification/m1.md) 和 [M2 验收记录](docs/verification/m2.md)。Server 已接入 SQLite / EF Core、管理员 Cookie 会话、防伪造，以及支持多项目/环境范围的应用令牌管理；39 项自动化测试通过。当前界面仍是 TypeScript + Element Plus 应用壳，登录与管理工作区在 M4 接入，见 [前端 README](src/frontend/README.md#当前应用壳)；配置管理与读取、长轮询、SDK 和生产容器按后续里程碑交付。
 
 ## 首次拉取后的本机准备
 
@@ -29,7 +29,7 @@ Windows 出现证书信任确认窗口时完成系统确认，再启动 AppHost�
 
 如果设置了 `HTTP_PROXY` 或 `HTTPS_PROXY`，检查 `NO_PROXY` 是否覆盖回环主机名及 IPv4、IPv6 回环地址，追加时保留已有绕过项。缺少绕过设置可能导致 Aspire 本机资源连接失败；配置从当前终端和用户环境变量获取，不写入仓库。修改用户环境变量后，重新打开终端或重启 Visual Studio，使新启动的 AppHost 继承设置。
 
-准备完成后，在 Visual Studio 中将 `Trelix.AppHost` 设为启动项目，或使用[统一启动命令](docs/local-development.md#统一启动与联调)。从 Aspire 面板打开 `trelix-client` 的 HTTPS 地址，检查页面与侧栏，并通过前端地址下的 `/health`、`/alive` 验证代理；两者应返回 `Healthy`。
+准备完成后，先按 [Server 存储与首次初始化](docs/local-development.md#server-存储与首次初始化) 在源码之外配置首个管理员凭证；再在 Visual Studio 中将 `Trelix.AppHost` 设为启动项目，或使用[统一启动命令](docs/local-development.md#统一启动与联调)。从 Aspire 面板打开 `trelix-client` 的 HTTPS 地址，检查页面与侧栏，并通过前端地址下的 `/health`、`/alive` 验证代理；两者应返回 `Healthy`。
 
 ## 文档入口
 
