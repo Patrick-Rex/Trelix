@@ -1,12 +1,78 @@
-@Trelix.Server_HostAddress = http://localhost:5199
+@baseUrl = https://trelix.invalid
+@username = <administrator-name>
+@password = <external-password>
+@csrf = <request-token>
+@tokenId = <token-id>
+@projectId = <project-id>
+@environmentId = <environment-id>
+@expiresAt = <future-utc-time>
 
-# Development 环境的健康检查；应用壳尚未接入业务 API。
-GET {{Trelix.Server_HostAddress}}/health
+# 从运行环境取得实际地址；敏感变量只放在 HTTP 客户端的外部私有环境中。
+# 客户端须保存并发送响应 Cookie；登录后重新获取防伪造令牌。
+
+### Development 环境健康检查
+GET {{baseUrl}}/health
 Accept: text/plain
 
 ###
 
-GET {{Trelix.Server_HostAddress}}/alive
+GET {{baseUrl}}/alive
 Accept: text/plain
 
-###
+### 获取匿名防伪造令牌；登录后再次调用，更新 csrf 变量
+GET {{baseUrl}}/api/admin/auth/antiforgery
+
+### 管理员登录
+POST {{baseUrl}}/api/admin/auth/login
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{
+  "username": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 查询当前会话
+GET {{baseUrl}}/api/admin/auth/session
+
+### 创建应用令牌；secret 只返回一次，请存入调用方的外部凭证配置
+POST {{baseUrl}}/api/admin/application-tokens
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{
+  "name": "example-consumer",
+  "expiresAt": "{{expiresAt}}",
+  "scopes": [
+    { "projectId": "{{projectId}}", "environmentId": "{{environmentId}}" }
+  ]
+}
+
+### 分页查询令牌元数据
+GET {{baseUrl}}/api/admin/application-tokens?page=1&pageSize=50
+
+### 查询令牌；无此标识时返回 404
+GET {{baseUrl}}/api/admin/application-tokens/{{tokenId}}
+
+### 轮换：新令牌沿用授权范围，旧令牌立即失效
+POST {{baseUrl}}/api/admin/application-tokens/{{tokenId}}/rotate
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{
+  "expiresAt": "{{expiresAt}}"
+}
+
+### 撤销令牌
+POST {{baseUrl}}/api/admin/application-tokens/{{tokenId}}/revoke
+X-Trelix-CSRF: {{csrf}}
+
+### 退出当前会话
+POST {{baseUrl}}/api/admin/auth/logout
+X-Trelix-CSRF: {{csrf}}
+
+### 防伪造错误路径：重新登录后执行，不携带令牌应返回 400
+POST {{baseUrl}}/api/admin/auth/logout
+
+### Development 环境 OpenAPI
+GET {{baseUrl}}/openapi/admin.json

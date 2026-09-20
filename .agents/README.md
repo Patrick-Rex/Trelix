@@ -22,7 +22,7 @@
 | [optimizing-ef-core-queries](skills/optimizing-ef-core-queries/SKILL.md) | EF 查询性能与 N+1 排查 | 需要判断项目技术基线，这个技能参考使用 |
 | [configuring-opentelemetry-dotnet](skills/configuring-opentelemetry-dotnet/SKILL.md) | 追踪、指标、日志与 OTLP | 复用 ServiceDefaults 已有注册 |
 | [dotnet-dump-analysis](skills/dotnet-dump-analysis/SKILL.md) | .NET dump、Linux coredump、内存增长、LOH 与引用链分析 | 先分析已有快照，按需采集；多时点证据判断泄漏 |
-| [run-tests](skills/run-tests/SKILL.md) | .NET 测试执行与命令 | 先识别真实测试项目，不将零测试视为通过 |
+| [run-tests](skills/run-tests/SKILL.md) | .NET 测试执行与命令 | Server 已采用 xUnit v3 + MTP 原生命令模式，仍按实际项目核对，不将零测试视为通过 |
 | [platform-detection](skills/platform-detection/SKILL.md) | 识别 .NET 测试框架/平台 | 为 run-tests 提供按需配套能力 |
 | [filter-syntax](skills/filter-syntax/SKILL.md) | 按测试、类、分类等筛选 | 使用实际运行平台对应语法 |
 

@@ -9,9 +9,12 @@
     </Project>
     <Project Path="src/Trelix.AppHost/Trelix.AppHost.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Trelix.Server.Tests/Trelix.Server.Tests.csproj" />
+  </Folder>
   <Folder Name="/_files/">
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="nuget.config" />
-  </Folder>`
+  </Folder>
 </Solution>
