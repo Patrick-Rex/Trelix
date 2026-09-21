@@ -21,7 +21,7 @@
 | 页面组件 | Element Plus | 已接入 Element Plus 与 `@element-plus/icons-vue`；显式导入组件、图标和所需样式，版本以 npm 清单和锁文件为准 |
 | 配置编辑器 | Monaco Editor | 尚未接入；JSON/YAML/Tree 的交互和转换规则见产品方案，实例与 worker 集成遵循前端指引 |
 | 数据存储 | SQLite + EF Core 10 | SQLite provider 与 Design 包版本由集中依赖管理；已建立逻辑模型、初始迁移和启动迁移入口；UTC 时间转换为 INTEGER ticks，文件与令牌使用应用维护的并发标记 |
-| 管理员认证 | 单个内置管理员 + ASP.NET Core Cookie，无 RBAC | 已接入 PasswordHasher、外部首次初始化、SQLite 会话校验及防伪造；会话规则见产品方案，界面在 M4 接入 |
+| 管理员认证 | 单个内置管理员 + ASP.NET Core Cookie，无 RBAC | 已接入 PasswordHasher、外部首次初始化、SQLite 会话校验、防伪造及按来源 IP 的登录令牌桶限流；会话与限流规则见产品方案，界面在 M4 接入 |
 | 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入 256 位随机令牌、SHA-256 摘要、有效期、撤销、原子轮换与多范围授权基础；生产读取与长轮询入口分别随 M3、M5 接入 |
 | .NET 测试 | xUnit v3 + Microsoft.Testing.Platform v2 | `xunit.v3.mtp-v2` 的包版本与 ASP.NET Core 测试宿主版本由集中依赖管理；`global.json` 选择原生 MTP 命令模式；集成测试使用真实 SQLite 文件 |
 | .NET 配置集成 | 自定义 IConfigurationSource / ConfigurationProvider + 后台监听，一次接入一个文件 | 启动必须拉取成功；运行中失败保留最近成功配置并退避重试；无磁盘缓存，见 [SDK 设计](architecture.md#sdk-与宿主边界) |
