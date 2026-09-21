@@ -4,8 +4,16 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Persistence;
 
+/// <summary>在接受请求前应用数据库迁移，并按外部凭证初始化唯一管理员。</summary>
+/// <param name="db">当前作用域的数据库上下文。</param>
+/// <param name="configuration">外部注入的应用配置。</param>
+/// <param name="passwords">管理员密码哈希生成与校验器。</param>
 public sealed class DatabaseInitializer(TrelixDbContext db, IConfiguration configuration, IPasswordHasher<Administrator> passwords)
 {
+    /// <summary>应用迁移；仅在管理员不存在时校验初始化配置并保存密码哈希。</summary>
+    /// <param name="cancellationToken">取消当前操作的令牌。</param>
+    /// <returns>表示初始化完成的任务。</returns>
+    /// <exception cref="InvalidOperationException">首次初始化时管理员配置缺失或不符合格式约定。</exception>
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
         await db.Database.MigrateAsync(cancellationToken);
