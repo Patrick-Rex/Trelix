@@ -4,6 +4,7 @@
 
 - 当前为 Aspire AppHost SDK 13.5.4、`net10.0`，JavaScript 集成包为 13.5.4；SDK 版本由根目录 `global.json` 管理，公共构建属性与包版本继承根目录配置，遵循 [统一配置约定](../../docs/development-baseline.md#net-统一配置)。`AppHost.cs` 注册 `trelix-server` 与 `trelix-client`。
 - 负责本地资源编排、依赖引用、配置传递与启动顺序；不放业务逻辑、配置持久化和业务 API。首版生产由 Server 在 Linux Docker 单容器运行，AppHost 不作为生产入口，见 [生产部署](../../docs/deployment.md)。
+- 显式设置 `AspireUseCliBundle=false`，保持通过 NuGet 还原编排依赖，支持 IDE 与 `dotnet run` 启动；按 [ASPIRE010 官方说明](https://aspire.dev/zh-cn/diagnostics/aspire010/) 仅在 AppHost 定向抑制该 CLI bundle 功能提示，不扩大到其他警告。
 - 首版单实例 SQLite 不需要独立数据库容器。新增容器、缓存、消息系统或多实例方案需要先讨论。
 - 前端通过 `AddViteApp("trelix-client", "../frontend")` 编排，目录相对于 AppHost；使用 `WithNpm(installCommand: "ci")` 安装锁定依赖、`WithReference(server)` 注入服务地址、`WaitFor(server)` 等待后端启动。
 - Vite 已自行配置 HTTPS 开发证书，将 `AddViteApp` 默认的 `http` 端点改为 `https` 名称和协议，避免面板链接与实际监听协议不符；不额外添加重复端点。Aspire 通过 `--port` 参数指定 Vite 监听端口，优先于前端独立启动时的端口配置。

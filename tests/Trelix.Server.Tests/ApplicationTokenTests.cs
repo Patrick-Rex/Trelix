@@ -22,11 +22,11 @@ public sealed class ApplicationTokenTests
         using var response = await admin.PostAsJsonAsync(TokensPath, new CreateApplicationTokenRequest
         {
             Name = "integration-consumer", ExpiresAt = app.Clock.GetUtcNow().AddHours(1), Scopes = scopes
-        });
+        }, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Assert.NotNull(response.Headers.Location);
         Assert.True(response.Headers.CacheControl?.NoStore);
-        return (await response.Content.ReadFromJsonAsync<IssuedApplicationTokenResponse>())!;
+        return (await response.Content.ReadFromJsonAsync<IssuedApplicationTokenResponse>(cancellationToken: TestContext.Current.CancellationToken))!;
     }
 
     /// <summary>使用指定凭证请求应用资源授权探针。</summary>
@@ -40,7 +40,7 @@ public sealed class ApplicationTokenTests
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/__tests/application/{projectId}/{environmentId}");
         if (secret is not null)
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", secret);
-        using var response = await client.SendAsync(request);
+        using var response = await client.SendAsync(request, cancellationToken: TestContext.Current.CancellationToken);
         return response.StatusCode;
     }
 
@@ -59,15 +59,15 @@ public sealed class ApplicationTokenTests
             new TokenScopeRequest(resources.Second.Id, resources.SecondEnv.Id));
         Assert.Equal(2, issued.Token.Scopes.Count);
         Assert.True(ApplicationTokenSecret.HasValidFormat(issued.Secret));
-        var hash = await app.WithDbAsync(db => db.ApplicationTokens.Select(x => x.SecretHash).SingleAsync());
+        var hash = await app.WithDbAsync(db => db.ApplicationTokens.Select(x => x.SecretHash).SingleAsync(cancellationToken: TestContext.Current.CancellationToken));
         Assert.True(hash == ApplicationTokenSecret.Hash(issued.Secret));
-        using var get = await admin.GetAsync($"{TokensPath}/{issued.Token.Id}");
-        using var list = await admin.GetAsync(TokensPath);
+        using var get = await admin.GetAsync($"{TokensPath}/{issued.Token.Id}", cancellationToken: TestContext.Current.CancellationToken);
+        using var list = await admin.GetAsync(TokensPath, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, get.StatusCode);
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
-        var responseBodies = await get.Content.ReadAsStringAsync() + await list.Content.ReadAsStringAsync();
+        var responseBodies = await get.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken) + await list.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(!responseBodies.Contains(issued.Secret) && !responseBodies.Contains(hash));
-        Assert.Single((await list.Content.ReadFromJsonAsync<ApplicationTokenListResponse>())!.Items);
+        Assert.Single((await list.Content.ReadFromJsonAsync<ApplicationTokenListResponse>(cancellationToken: TestContext.Current.CancellationToken))!.Items);
         using var consumer = app.NewClient(false);
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, issued.Secret, resources.First.Id, resources.FirstEnv.Id));
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, issued.Secret, resources.Second.Id, resources.SecondEnv.Id));
@@ -109,10 +109,10 @@ public sealed class ApplicationTokenTests
             "null-scope" => request with { Scopes = [null!] },
             _ => request
         };
-        using var response = await admin.PostAsJsonAsync(TokensPath, request);
+        using var response = await admin.PostAsJsonAsync(TokensPath, request, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal(0, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync()));
+        Assert.Equal(0, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync(cancellationToken: TestContext.Current.CancellationToken)));
     }
 
     /// <summary>验证有效期必填且列表页大小受限。</summary>
@@ -124,11 +124,11 @@ public sealed class ApplicationTokenTests
         await using var app = new ServerFactory(data);
         using var admin = app.NewClient();
         await app.LoginAsync(admin);
-        using var missing = await admin.PostAsJsonAsync(TokensPath, new { name = "consumer", scopes = Array.Empty<object>() });
+        using var missing = await admin.PostAsJsonAsync(TokensPath, new { name = "consumer", scopes = Array.Empty<object>() }, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
-        using var invalidPage = await admin.GetAsync(TokensPath + "?pageSize=101");
+        using var invalidPage = await admin.GetAsync(TokensPath + "?pageSize=101", cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, invalidPage.StatusCode);
-        using var missingToken = await admin.GetAsync($"{TokensPath}/{Guid.NewGuid()}");
+        using var missingToken = await admin.GetAsync($"{TokensPath}/{Guid.NewGuid()}", cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.NotFound, missingToken.StatusCode);
     }
 
@@ -146,15 +146,15 @@ public sealed class ApplicationTokenTests
         Assert.Equal(HttpStatusCode.Unauthorized, await ProbeAsync(admin, null, resources.First.Id, resources.FirstEnv.Id));
         using var consumer = app.NewClient(false);
         consumer.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", issued.Secret);
-        using var managementRead = await consumer.GetAsync(TokensPath);
-        using var managementWrite = await consumer.PostAsync($"{TokensPath}/{issued.Token.Id}/revoke", null);
+        using var managementRead = await consumer.GetAsync(TokensPath, cancellationToken: TestContext.Current.CancellationToken);
+        using var managementWrite = await consumer.PostAsync($"{TokensPath}/{issued.Token.Id}/revoke", null, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Unauthorized, managementRead.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, managementWrite.StatusCode);
         admin.DefaultRequestHeaders.Remove(AuthenticationConstants.CsrfHeader);
-        using var missing = await admin.PostAsync($"{TokensPath}/{issued.Token.Id}/revoke", null);
+        using var missing = await admin.PostAsync($"{TokensPath}/{issued.Token.Id}/revoke", null, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
         admin.DefaultRequestHeaders.Add(AuthenticationConstants.CsrfHeader, "invalid");
-        using var invalid = await admin.PostAsync($"{TokensPath}/{issued.Token.Id}/revoke", null);
+        using var invalid = await admin.PostAsync($"{TokensPath}/{issued.Token.Id}/revoke", null, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, issued.Secret, resources.First.Id, resources.FirstEnv.Id));
     }
@@ -190,19 +190,19 @@ public sealed class ApplicationTokenTests
         var original = await IssueAsync(app, admin, new TokenScopeRequest(resources.First.Id, resources.FirstEnv.Id),
             new TokenScopeRequest(resources.Second.Id, resources.SecondEnv.Id));
         using var rotation = await admin.PostAsJsonAsync($"{TokensPath}/{original.Token.Id}/rotate",
-            new RotateApplicationTokenRequest { ExpiresAt = app.Clock.GetUtcNow().AddDays(1) });
+            new RotateApplicationTokenRequest { ExpiresAt = app.Clock.GetUtcNow().AddDays(1) }, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Created, rotation.StatusCode);
-        var replacement = (await rotation.Content.ReadFromJsonAsync<IssuedApplicationTokenResponse>())!;
+        var replacement = (await rotation.Content.ReadFromJsonAsync<IssuedApplicationTokenResponse>(cancellationToken: TestContext.Current.CancellationToken))!;
         Assert.NotEqual(original.Token.Id, replacement.Token.Id);
         Assert.True(original.Secret != replacement.Secret);
         Assert.Equal(original.Token.Scopes, replacement.Token.Scopes);
         using var consumer = app.NewClient(false);
         Assert.Equal(HttpStatusCode.Unauthorized, await ProbeAsync(consumer, original.Secret, resources.First.Id, resources.FirstEnv.Id));
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, replacement.Secret, resources.First.Id, resources.FirstEnv.Id));
-        using var repeat = await admin.PostAsJsonAsync($"{TokensPath}/{original.Token.Id}/rotate", new { expiresAt = app.Clock.GetUtcNow().AddDays(1) });
+        using var repeat = await admin.PostAsJsonAsync($"{TokensPath}/{original.Token.Id}/rotate", new { expiresAt = app.Clock.GetUtcNow().AddDays(1) }, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Conflict, repeat.StatusCode);
-        using var revoke = await admin.PostAsync($"{TokensPath}/{replacement.Token.Id}/revoke", null);
-        using var repeatedRevoke = await admin.PostAsync($"{TokensPath}/{replacement.Token.Id}/revoke", null);
+        using var revoke = await admin.PostAsync($"{TokensPath}/{replacement.Token.Id}/revoke", null, cancellationToken: TestContext.Current.CancellationToken);
+        using var repeatedRevoke = await admin.PostAsync($"{TokensPath}/{replacement.Token.Id}/revoke", null, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.NoContent, revoke.StatusCode);
         Assert.Equal(HttpStatusCode.NoContent, repeatedRevoke.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, await ProbeAsync(consumer, replacement.Secret, resources.First.Id, resources.FirstEnv.Id));
@@ -220,13 +220,13 @@ public sealed class ApplicationTokenTests
         var resources = await app.SeedResourcesAsync();
         var original = await IssueAsync(app, admin, new TokenScopeRequest(resources.First.Id, resources.FirstEnv.Id));
         var requests = await Task.WhenAll(Enumerable.Range(0, 2).Select(_ => admin.PostAsJsonAsync(
-            $"{TokensPath}/{original.Token.Id}/rotate", new { expiresAt = app.Clock.GetUtcNow().AddDays(1) })));
+            $"{TokensPath}/{original.Token.Id}/rotate", new { expiresAt = app.Clock.GetUtcNow().AddDays(1) }, cancellationToken: TestContext.Current.CancellationToken)));
         try
         {
             Assert.Single(requests, response => response.StatusCode == HttpStatusCode.Created);
             Assert.Single(requests, response => response.StatusCode == HttpStatusCode.Conflict);
-            Assert.Equal(2, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync()));
-            Assert.Equal(1, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync(x => x.RevokedAt == null)));
+            Assert.Equal(2, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync(cancellationToken: TestContext.Current.CancellationToken)));
+            Assert.Equal(1, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync(x => x.RevokedAt == null, cancellationToken: TestContext.Current.CancellationToken)));
         }
         finally
         {

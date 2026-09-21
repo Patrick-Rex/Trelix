@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
+    <!-- Keep orchestration dependencies restored by NuGet for IDE and dotnet run startup. -->
+    <AspireUseCliBundle>false</AspireUseCliBundle>
+    <NoWarn>$(NoWarn);ASPIRE010</NoWarn>
     <UserSecretsId>ca89378d-b247-4a87-a54b-44a168f4aa77</UserSecretsId>
   </PropertyGroup>
 

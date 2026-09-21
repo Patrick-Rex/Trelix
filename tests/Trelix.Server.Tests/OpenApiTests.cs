@@ -18,34 +18,34 @@ public sealed class OpenApiTests
         using var data = new TestDataDirectory();
         await using var app = new ServerFactory(data);
         using var client = app.NewClient();
-        using var entry = await client.GetAsync("/scalar");
+        using var entry = await client.GetAsync("/scalar", cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.Found, entry.StatusCode);
         Assert.NotNull(entry.Headers.Location);
         var documentUri = new Uri(entry.RequestMessage!.RequestUri!, entry.Headers.Location);
         Assert.Equal("/scalar/", documentUri.AbsolutePath);
-        using var response = await client.GetAsync(documentUri);
+        using var response = await client.GetAsync(documentUri, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
-        var html = await response.Content.ReadAsStringAsync();
+        var html = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.Contains("openapi/admin.json", html);
         Assert.Contains("openapi/application.json", html);
         var script = Regex.Match(html, "src=\"([^\"]*scalar[^\"]*\\.js)\"");
         Assert.True(script.Success, "Scalar must reference its bundled JavaScript.");
         var scriptPath = script.Groups[1].Value;
         Assert.Equal("scalar.js", scriptPath);
-        using var asset = await client.GetAsync("/scalar/" + scriptPath);
+        using var asset = await client.GetAsync("/scalar/" + scriptPath, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, asset.StatusCode);
         Assert.Contains("javascript", asset.Content.Headers.ContentType?.MediaType ?? "");
 
-        using var direct = await client.GetAsync("/scalar/admin");
+        using var direct = await client.GetAsync("/scalar/admin", cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, direct.StatusCode);
-        Assert.Contains("openapi/admin.json", await direct.Content.ReadAsStringAsync());
+        Assert.Contains("openapi/admin.json", await direct.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken));
 
-        var admin = await client.GetFromJsonAsync<JsonElement>("/openapi/admin.json");
+        var admin = await client.GetFromJsonAsync<JsonElement>("/openapi/admin.json", cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(admin.GetProperty("paths").TryGetProperty("/api/admin/auth/login", out _));
         var login = admin.GetProperty("components").GetProperty("schemas").GetProperty("LoginRequest");
         Assert.Contains("管理员登录凭证", login.GetProperty("description").GetString());
-        var application = await client.GetFromJsonAsync<JsonElement>("/openapi/application.json");
+        var application = await client.GetFromJsonAsync<JsonElement>("/openapi/application.json", cancellationToken: TestContext.Current.CancellationToken);
         Assert.Empty(application.GetProperty("paths").EnumerateObject());
     }
 
@@ -67,8 +67,8 @@ public sealed class OpenApiTests
 
         foreach (var path in new[] { "/scalar/admin", "/openapi/admin.json", "/openapi/application.json" })
         {
-            using var response = await client.GetAsync(path);
-            var content = await response.Content.ReadAsStringAsync();
+            using var response = await client.GetAsync(path, cancellationToken: TestContext.Current.CancellationToken);
+            var content = await response.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken);
             Assert.DoesNotContain("Scalar.createApiReference", content);
             Assert.DoesNotContain("\"openapi\":", content);
         }
