@@ -4,7 +4,7 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 首版包含 JSON/YAML/Tree 管理工作区、内置管理员 Cookie 登录、应用只读令牌、已发布配置读取与长轮询、.NET 配置 SDK。生产采用 Linux Docker 单容器、单实例，前后端统一交付，SQLite 挂载持久化；不依赖外部 IAM 或 SSO 平台。
 
-M1 工程基础与 M2 存储认证已完成，分别见 [M1 验收记录](docs/verification/m1.md) 和 [M2 验收记录](docs/verification/m2.md)。Server 已接入 SQLite / EF Core、管理员 Cookie 会话、防伪造，以及支持多项目/环境范围的应用令牌管理；39 项自动化测试通过。当前界面仍是 TypeScript + Element Plus 应用壳，登录与管理工作区在 M4 接入，见 [前端 README](src/frontend/README.md#当前应用壳)；配置管理与读取、长轮询、SDK 和生产容器按后续里程碑交付。
+M1 工程基础与 M2 存储认证已完成，分别见 [M1 验收记录](docs/verification/m1.md) 和 [M2 验收记录](docs/verification/m2.md)。Server 已接入 SQLite / EF Core、管理员 Cookie 会话、防伪造，以及支持多项目/环境范围的应用令牌管理；42 项自动化测试通过，覆盖原有存储认证场景及 Scalar / OpenAPI 的开发环境边界。当前界面仍是 TypeScript + Element Plus 应用壳，登录与管理工作区在 M4 接入，见 [前端 README](src/frontend/README.md#当前应用壳)；配置管理与读取、长轮询、SDK 和生产容器按后续里程碑交付。
 
 ## 首次拉取后的本机准备
 
@@ -33,6 +33,8 @@ Windows 出现证书信任确认窗口时完成系统确认，再启动 AppHost�
 
 ## 文档入口
 
+开发环境提供 Scalar 交互式 API 文档，访问 Server 的 `/scalar` 可切换管理与应用分组；启动与认证步骤见 [API 文档](docs/local-development.md#api-文档)。
+
 完整分工与按任务阅读顺序见 [文档索引](docs/README.md)。
 
 | 关注内容 | 文档 |
@@ -40,6 +42,7 @@ Windows 出现证书信任确认窗口时完成系统确认，再启动 AppHost�
 | 产品目标、首版范围与业务规则 | [产品方案](docs/product-plan.md) |
 | 目标项目结构、程序边界、模块职责与数据流 | [架构设计](docs/architecture.md) |
 | 技术选择、版本来源与工程约束 | [技术基线](docs/development-baseline.md) |
+| 后端性能反模式与优化验证 | [后端约束](src/backend/AGENTS.md#性能反模式约束)、[性能变更验证](docs/quality.md#性能变更验证) |
 | 阶段交付与完成条件 | [交付里程碑](docs/milestones.md)、[质量与验收](docs/quality.md) |
 | 环境准备、启动与联调 | [本地开发](docs/local-development.md) |
 | 生产交付与持久化 | [生产部署](docs/deployment.md) |

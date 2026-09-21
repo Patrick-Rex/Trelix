@@ -8,8 +8,17 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Features.Authentication;
 
+/// <summary>管理固定有效期的管理员会话及对应的登录 Cookie。</summary>
+/// <param name="db">当前作用域的数据库上下文。</param>
+/// <param name="passwords">管理员密码哈希生成与校验器。</param>
+/// <param name="time">用于生命周期校验的时间提供程序。</param>
 public sealed class AdministratorSessionService(TrelixDbContext db, IPasswordHasher<Administrator> passwords, TimeProvider time)
 {
+    /// <summary>校验密码、按需更新密码哈希，替换当前会话并写入登录 Cookie。</summary>
+    /// <param name="context">当前 HTTP 请求上下文。</param>
+    /// <param name="request">管理员登录凭证。</param>
+    /// <param name="cancellationToken">取消当前操作的令牌。</param>
+    /// <returns>登录成功的会话信息；凭证无效时为 null。</returns>
     public async Task<SessionResponse?> LoginAsync(HttpContext context, LoginRequest request, CancellationToken cancellationToken)
     {
         var admin = await db.Administrators.SingleAsync(cancellationToken);
@@ -44,6 +53,10 @@ public sealed class AdministratorSessionService(TrelixDbContext db, IPasswordHas
         return new SessionResponse(admin.Username, session.ExpiresAt);
     }
 
+    /// <summary>读取已认证身份对应的未过期会话。</summary>
+    /// <param name="user">已通过管理员认证的请求身份。</param>
+    /// <param name="cancellationToken">取消当前操作的令牌。</param>
+    /// <returns>当前会话信息；会话不存在或已过期时为 null。</returns>
     public async Task<SessionResponse?> GetAsync(ClaimsPrincipal user, CancellationToken cancellationToken)
     {
         var sessionId = Guid.Parse(user.FindFirstValue(AuthenticationConstants.SessionClaim)!);
@@ -53,6 +66,10 @@ public sealed class AdministratorSessionService(TrelixDbContext db, IPasswordHas
         return expiry is null ? null : new SessionResponse(user.Identity!.Name!, expiry.Value);
     }
 
+    /// <summary>删除当前持久化会话并清除登录 Cookie。</summary>
+    /// <param name="context">当前 HTTP 请求上下文。</param>
+    /// <param name="cancellationToken">取消当前操作的令牌。</param>
+    /// <returns>表示退出完成的任务。</returns>
     public async Task LogoutAsync(HttpContext context, CancellationToken cancellationToken)
     {
         var sessionId = Guid.Parse(context.User.FindFirstValue(AuthenticationConstants.SessionClaim)!);

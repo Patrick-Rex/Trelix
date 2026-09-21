@@ -4,8 +4,11 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Persistence.Configurations;
 
+/// <summary>配置唯一内置管理员的主键、单例约束与安全戳并发检查。</summary>
 public sealed class AdministratorMapping : IEntityTypeConfiguration<Administrator>
 {
+    /// <summary>配置唯一内置管理员的主键、单例约束与安全戳并发检查。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<Administrator> builder)
     {
         builder.HasKey(x => x.Id);
@@ -15,8 +18,11 @@ public sealed class AdministratorMapping : IEntityTypeConfiguration<Administrato
     }
 }
 
+/// <summary>配置管理员会话关联、级联删除与到期时间索引。</summary>
 public sealed class AdministratorSessionMapping : IEntityTypeConfiguration<AdministratorSession>
 {
+    /// <summary>配置管理员会话关联、级联删除与到期时间索引。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<AdministratorSession> builder)
     {
         builder.HasKey(x => x.Id);
@@ -25,8 +31,11 @@ public sealed class AdministratorSessionMapping : IEntityTypeConfiguration<Admin
     }
 }
 
+/// <summary>配置令牌摘要唯一性、并发标记、授权关联与有效期约束。</summary>
 public sealed class ApplicationTokenMapping : IEntityTypeConfiguration<ApplicationToken>
 {
+    /// <summary>配置令牌摘要唯一性、并发标记、授权关联与有效期约束。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<ApplicationToken> builder)
     {
         builder.HasKey(x => x.Id);
@@ -38,8 +47,11 @@ public sealed class ApplicationTokenMapping : IEntityTypeConfiguration<Applicati
     }
 }
 
+/// <summary>配置令牌与环境的联合主键及环境外键约束。</summary>
 public sealed class TokenScopeMapping : IEntityTypeConfiguration<TokenScope>
 {
+    /// <summary>配置令牌与环境的联合主键及环境外键约束。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<TokenScope> builder)
     {
         builder.HasKey(x => new { x.ApplicationTokenId, x.EnvironmentId });

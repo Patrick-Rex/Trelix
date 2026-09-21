@@ -8,6 +8,12 @@ using Trelix.Server.Persistence;
 
 namespace Trelix.Server.Infrastructure.Authentication;
 
+/// <summary>通过 Bearer 原文的 SHA-256 摘要校验只读应用身份。</summary>
+/// <param name="options">应用令牌认证方案的配置监视器。</param>
+/// <param name="logger">诊断日志服务。</param>
+/// <param name="encoder">认证处理器使用的 URL 编码器。</param>
+/// <param name="db">当前作用域的数据库上下文。</param>
+/// <param name="time">用于生命周期校验的时间提供程序。</param>
 public sealed class ApplicationTokenHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
@@ -15,6 +21,8 @@ public sealed class ApplicationTokenHandler(
     TrelixDbContext db,
     TimeProvider time) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
+    /// <summary>验证请求头格式及令牌生命周期，建立仅含令牌标识的身份。</summary>
+    /// <returns>身份认证结果；缺少请求头时不产生认证结果。</returns>
     protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (!Request.Headers.TryGetValue("Authorization", out var values))
@@ -35,6 +43,9 @@ public sealed class ApplicationTokenHandler(
         return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name));
     }
 
+    /// <summary>返回 401 并声明 Bearer 认证挑战。</summary>
+    /// <param name="properties">认证挑战的附加属性。</param>
+    /// <returns>已完成的任务。</returns>
     protected override Task HandleChallengeAsync(AuthenticationProperties properties)
     {
         Response.Headers.WWWAuthenticate = "Bearer";

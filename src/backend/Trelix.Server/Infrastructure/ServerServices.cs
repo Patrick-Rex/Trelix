@@ -18,8 +18,13 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Infrastructure;
 
+/// <summary>集中装配 Server 的存储、认证、用例服务与 HTTP 基础能力。</summary>
 public static class ServerServices
 {
+    /// <summary>注册持久化、认证授权、防伪造、错误处理及两组 OpenAPI 文档。</summary>
+    /// <param name="services">待注册服务的依赖注入集合。</param>
+    /// <param name="environment">当前宿主环境及内容根目录。</param>
+    /// <returns>原服务集合。</returns>
     public static IServiceCollection AddTrelix(this IServiceCollection services, IHostEnvironment environment)
     {
         services.AddSingleton(TimeProvider.System);
