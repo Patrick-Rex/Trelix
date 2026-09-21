@@ -7,6 +7,8 @@ namespace Trelix.Server.Infrastructure;
 /// <param name="title">允许公开的错误提示。</param>
 public sealed class ApiOperationException(int status, string code, string title) : Exception(title)
 {
+    /// <summary>错误响应使用的 HTTP 状态码。</summary>
     public int Status { get; } = status;
+    /// <summary>供客户端识别错误类别的稳定业务错误码。</summary>
     public string Code { get; } = code;
 }

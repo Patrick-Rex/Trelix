@@ -20,6 +20,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+
 app.MapDefaultEndpoints();
 app.MapStaticAssets().AllowAnonymous();
 if (app.Environment.IsDevelopment())

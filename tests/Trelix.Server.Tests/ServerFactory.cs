@@ -156,7 +156,7 @@ public sealed class ServerFactory(TestDataDirectory data) : WebApplicationFactor
             var otherEnv = new ProjectEnvironment { ProjectId = first.Id, Key = "other", DisplayName = "Other" };
             var secondEnv = new ProjectEnvironment { ProjectId = second.Id, Key = "shared", DisplayName = "Second shared" };
             db.AddRange(first, second, firstEnv, otherEnv, secondEnv);
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(cancellationToken: TestContext.Current.CancellationToken);
             return (first, second, firstEnv, otherEnv, secondEnv);
         });
     }
@@ -167,7 +167,7 @@ public sealed class ServerFactory(TestDataDirectory data) : WebApplicationFactor
     public async Task<string> LoginAsync(HttpClient client)
     {
         await RefreshCsrfAsync(client);
-        using var response = await client.PostAsJsonAsync("/api/admin/auth/login", new LoginRequest { Username = Username, Password = Password });
+        using var response = await client.PostAsJsonAsync("/api/admin/auth/login", new LoginRequest { Username = Username, Password = Password }, cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var cookie = response.Headers.GetValues("Set-Cookie").Single(x => x.StartsWith("Trelix.Admin=", StringComparison.Ordinal));
         await RefreshCsrfAsync(client);
@@ -179,7 +179,7 @@ public sealed class ServerFactory(TestDataDirectory data) : WebApplicationFactor
     /// <returns>新的防伪造请求令牌。</returns>
     public static async Task<string> RefreshCsrfAsync(HttpClient client)
     {
-        var csrf = await client.GetFromJsonAsync<AntiforgeryResponse>("/api/admin/auth/antiforgery");
+        var csrf = await client.GetFromJsonAsync<AntiforgeryResponse>("/api/admin/auth/antiforgery", cancellationToken: TestContext.Current.CancellationToken);
         Assert.NotNull(csrf);
         client.DefaultRequestHeaders.Remove(AuthenticationConstants.CsrfHeader);
         client.DefaultRequestHeaders.Add(AuthenticationConstants.CsrfHeader, csrf.RequestToken);

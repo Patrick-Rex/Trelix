@@ -7,13 +7,21 @@ namespace Trelix.Server.Persistence;
 /// <param name="options">数据库上下文配置。</param>
 public sealed class TrelixDbContext(DbContextOptions<TrelixDbContext> options) : DbContext(options)
 {
+    /// <summary>配置项目及其业务标识。</summary>
     public DbSet<Project> Projects => Set<Project>();
+    /// <summary>项目下的配置环境。</summary>
     public DbSet<ProjectEnvironment> Environments => Set<ProjectEnvironment>();
+    /// <summary>包含草稿及当前发布指向的配置文件。</summary>
     public DbSet<ConfigFile> ConfigFiles => Set<ConfigFile>();
+    /// <summary>按文件和版本标识的不可变发布历史。</summary>
     public DbSet<Release> Releases => Set<Release>();
+    /// <summary>唯一内置管理员的凭证与安全戳。</summary>
     public DbSet<Administrator> Administrators => Set<Administrator>();
+    /// <summary>用于逐请求验证和退出撤销的管理员会话。</summary>
     public DbSet<AdministratorSession> AdministratorSessions => Set<AdministratorSession>();
+    /// <summary>应用只读令牌摘要及生命周期信息。</summary>
     public DbSet<ApplicationToken> ApplicationTokens => Set<ApplicationToken>();
+    /// <summary>应用令牌与获授权环境之间的关联。</summary>
     public DbSet<TokenScope> TokenScopes => Set<TokenScope>();
 
     /// <summary>将时间统一映射为可在 SQLite 中比较和排序的 UTC ticks。</summary>

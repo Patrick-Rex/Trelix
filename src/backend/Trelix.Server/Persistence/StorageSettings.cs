@@ -5,7 +5,9 @@ namespace Trelix.Server.Persistence;
 /// <summary>解析持久化目录并提供启用外键约束的 SQLite 连接配置。</summary>
 public sealed class StorageSettings
 {
+    /// <summary>SQLite 数据库及 Data Protection 密钥的绝对存储目录。</summary>
     public string DataDirectory { get; }
+    /// <summary>由数据目录构建、启用外键约束的 SQLite 连接配置。</summary>
     public string ConnectionString { get; }
 
     /// <summary>解析并创建数据目录；非开发环境必须显式指定目录。</summary>

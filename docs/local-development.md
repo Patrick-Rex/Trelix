@@ -55,6 +55,8 @@ dotnet run --project .\src\Trelix.AppHost\Trelix.AppHost.csproj --launch-profile
 
 也可以在 Visual Studio 中将 `Trelix.AppHost` 设为启动项目。AppHost 统一启动 `trelix-server` 和 `trelix-client`，通过 npm 安装资源执行 `npm ci`，等待 Server 启动后运行 Vite。
 
+AppHost 保持通过 NuGet 还原编排依赖，显式设置 `AspireUseCliBundle=false`，不依赖 CLI bundle 提供编排组件；仅定向抑制 ASPIRE010 功能提示，依据见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md)。
+
 在 Aspire 面板打开 `trelix-client` 的 HTTPS 地址访问管理界面。Vite 端口由 Aspire 分配，代理请求访问 AppHost 注入的 Server 地址；不要同时手动启动另一套前端。检查应用壳页面、侧栏切换，并直接访问前端地址下的 `/health`、`/alive`，确认 Development 环境的健康检查代理可用。页面当前不调用业务 API，原天气示例已移除。
 
 独立前端启动使用 `DEV_SERVER_PORT` 或 `vite.config.js` 中的默认端口，后端须另行启动；具体操作见 [前端 README](../src/frontend/README.md#独立启动)。服务名、HTTPS 端点和启动顺序的实现约束见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md)。
@@ -94,3 +96,5 @@ dotnet test --project .\tests\Trelix.Server.Tests\Trelix.Server.Tests.csproj --v
 测试通过 WebApplicationFactory 在进程内启动 Server，使用独立 SQLite 文件、Data Protection 目录及运行时随机凭证，不需要真实管理员机密或开放监听端口。临时文件位于 Git 忽略的 `artifacts/m2-tests`，正常结束后清理；测试用授权探针只注册到测试宿主，不包含在 Server 发布程序集。重启验证关闭并重新创建宿主、重开同一数据库和密钥目录，不替代 M6 的真实进程与容器恢复验证。
 
 [OpenAPI 测试](../tests/Trelix.Server.Tests/OpenApiTests.cs) 验证开发环境的 Scalar 页面、本地脚本、两组 JSON 文档与 XML 契约说明，并检查 Production、Staging 不注册文档端点。
+
+测试及其辅助方法的 HTTP、响应读取与 EF 异步调用传递 `TestContext.Current.CancellationToken`，使测试取消能够终止相关 I/O。
