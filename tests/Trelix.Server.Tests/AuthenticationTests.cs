@@ -10,8 +10,11 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Tests;
 
+/// <summary>验证管理员初始化、Cookie 会话、防伪造与 API 信息边界。</summary>
 public sealed class AuthenticationTests
 {
+    /// <summary>验证首次启动只创建一个管理员且密码以哈希形式保存。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task InitializesOneAdministratorWithPasswordHash()
     {
@@ -23,6 +26,10 @@ public sealed class AuthenticationTests
         Assert.Equal(1, await app.WithDbAsync(db => db.Administrators.CountAsync()));
     }
 
+    /// <summary>验证缺失或不符合约定的初始化凭证使启动失败。</summary>
+    /// <param name="username">管理员账号名。</param>
+    /// <param name="password">待校验的初始化密码。</param>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Theory]
     [InlineData("", "")]
     [InlineData("administrator", "")]
@@ -36,6 +43,8 @@ public sealed class AuthenticationTests
         Assert.Contains("Trelix:Administrator", failure.ToString());
     }
 
+    /// <summary>验证登录需要防伪造令牌，认证失败不会泄露账号密码。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task LoginRequiresCsrfAndDoesNotRevealCredentials()
     {
@@ -59,6 +68,8 @@ public sealed class AuthenticationTests
         Assert.True(!string.Join('\n', app.Logs.Entries).Contains(app.Password));
     }
 
+    /// <summary>验证生产 Cookie 标记、固定有效期和退出后的旧 Cookie 重放拒绝。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task CookieFlagsLifetimeAndLogoutRejectReplay()
     {
@@ -90,6 +101,8 @@ public sealed class AuthenticationTests
         Assert.Equal(0, await app.WithDbAsync(db => db.AdministratorSessions.CountAsync()));
     }
 
+    /// <summary>验证会话不会自动续期且退出一个会话不影响另一个会话。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task FixedExpiryDoesNotSlideAndOtherSessionSurvivesLogout()
     {
@@ -110,6 +123,8 @@ public sealed class AuthenticationTests
         Assert.Equal(HttpStatusCode.Unauthorized, expired.StatusCode);
     }
 
+    /// <summary>验证管理员安全戳变化后已有会话立即失效。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task SecurityStampChangeInvalidatesSession()
     {
@@ -126,6 +141,8 @@ public sealed class AuthenticationTests
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    /// <summary>验证同一来源超过登录频率限制后返回 429。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task LoginRateLimitReturns429()
     {
@@ -143,6 +160,8 @@ public sealed class AuthenticationTests
         Assert.Equal("application/problem+json", limited.Content.Headers.ContentType?.MediaType);
     }
 
+    /// <summary>验证开发健康检查、管理 OpenAPI 分组及安全错误响应。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task ApiErrorsOpenApiAndHealthPreserveTheirBoundaries()
     {

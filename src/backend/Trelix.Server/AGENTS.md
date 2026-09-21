@@ -5,7 +5,7 @@
 ## 结构与边界
 
 - 采用轻量模块化单体；按 [目标项目结构](../../../docs/architecture.md#目标项目结构) 将认证、项目环境、文件草稿、发布、应用令牌与分发放入各自 `Features` 目录。`Program.cs` 只负责宿主装配，公共构建与依赖约定继承后端公共指引。
-- 使用 Controllers 与内置 `AddOpenApi` / `MapOpenApi`；管理 API 和应用 API 的路由、认证策略及契约分别维护。HTTP 错误使用 Problem Details，通用异常处理机制放 Core 的 `Middleware`，业务错误标识与映射在 Server 定义并装配，不返回原始异常或敏感配置。
+- 使用 Controllers 与内置 `AddOpenApi` / `MapOpenApi`，开发环境以 Scalar 展示 `admin` 与 `application` 两组文档；Scalar 和 OpenAPI JSON 仅在 Development 映射，访问方式见 [本地开发](../../../docs/local-development.md#api-文档)。管理 API 和应用 API 的路由、认证策略及契约分别维护。HTTP 错误使用 Problem Details，通用异常处理机制放 Core 的 `Middleware`，业务错误标识与映射在 Server 定义并装配，不返回原始异常或敏感配置。
 - SQLite + EF Core 10 的 DbContext、实体映射及迁移放入 `Persistence`；认证技术实现与通知等待管理放入 `Infrastructure`。目录划分不增加部署服务或多层转发类。
 - Server 引用 Core 的通用技术能力和 ServiceDefaults 的宿主默认配置，AppHost 负责编排；业务逻辑、数据访问、认证授权与发布通知留在 Server。具体归属见 [职责边界](../../../docs/architecture.md#通用技术与业务基础设施边界)。
 
@@ -23,7 +23,8 @@
 ## SQLite 与配置数据
 
 - 采用 EF Core 10 的 SQLite provider；实体与迁移按实际 SQLite 能力验证，不套用 SQL Server 的 schema、sequence 或数据库生成 rowversion 示例。
-- 查询优先投影所需字段；只读实体查询按需使用 `AsNoTracking`，避免 N+1 和无界结果集。
+- 查询先在数据库侧过滤、投影、排序并限制结果，避免先 `ToList` / `AsEnumerable` 再筛选分页、循环逐条查询和无界结果集；分页排序应稳定。只读实体查询按需使用 `AsNoTracking`，纯标量或 DTO 投影不机械追加；需要保存的实体保持必要跟踪。索引、`Include`、拆分查询及 EF 编译查询须依据实际 SQL、查询计划和数据规模选择，不把 `IQueryable` 的 LINQ 改成内存循环。
+- SQLite 写事务尽量短，不跨外部 HTTP、客户端等待或长轮询；不得通过并行写入、无界重试或扩大连接池掩盖锁争用。注意 [Microsoft.Data.Sqlite 的异步限制](https://learn.microsoft.com/dotnet/standard/data/sqlite/async)：其异步 ADO.NET 方法实际同步执行，不能仅凭 `Async` 后缀宣称消除了阻塞，也不用 `Task.Run` 包装查询；验证实际数据库行为、SQL 次数与事务边界后再报告性能收益。
 - SQLite 的并发写入和类型操作有限制；时间、版本字段的持久化映射与索引应可在真实 SQLite 上排序和比较，不能从 API 的 DateTimeOffset 类型直接推断存储方案。
 - 配置按 Project → Env → ConfigFile 组织，正文统一保存 JSON；JSON/YAML/Tree 视图转换由管理界面承担，服务端只接收并校验 JSON。
 - 保存仅更新草稿，应用仅读取已发布版本；回滚生成新发布版本。遵循产品方案中的版本和事务规则，保存、发布、回滚均实施并发保护，不能最后写入覆盖。

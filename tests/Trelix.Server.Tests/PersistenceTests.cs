@@ -12,8 +12,13 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Tests;
 
+/// <summary>使用真实 SQLite 验证关系约束、并发保护、事务与重启恢复。</summary>
 public sealed class PersistenceTests
 {
+    /// <summary>创建两个含草稿、发布历史和当前发布指向的测试文件。</summary>
+    /// <param name="app">当前集成测试宿主。</param>
+    /// <param name="environmentId">目标环境标识。</param>
+    /// <returns>两个测试文件的标识。</returns>
     private static async Task<(Guid FirstFile, Guid SecondFile)> SeedFilesAsync(ServerFactory app, Guid environmentId)
     {
         return await app.WithDbAsync(async db =>
@@ -33,6 +38,9 @@ public sealed class PersistenceTests
         });
     }
 
+    /// <summary>验证 SQLite 拒绝重复业务标识、孤立或跨文件关联以及无效 JSON。</summary>
+    /// <param name="scenario">本次验证的无效输入或数据库约束场景。</param>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Theory]
     [InlineData("project-key")]
     [InlineData("environment-key")]
@@ -97,6 +105,8 @@ public sealed class PersistenceTests
         });
     }
 
+    /// <summary>验证 UTC 时间精度、时区归一化及大于 Int32 的版本比较排序。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task UtcTimeAndInt64VersionsAreComparedAndOrderedInSqlite()
     {
@@ -130,6 +140,8 @@ public sealed class PersistenceTests
         });
     }
 
+    /// <summary>验证过期并发基准被拒绝且已发布历史不可修改。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task FileConcurrencyAndImmutableHistoryAreEnforced()
     {
@@ -155,6 +167,8 @@ public sealed class PersistenceTests
         Assert.Equal("{\"value\":1}", await app.WithDbAsync(db => db.Releases.Where(x => x.ConfigFileId == files.FirstFile).Select(x => x.Json).SingleAsync()));
     }
 
+    /// <summary>注入 SQLite 写入故障，验证轮换事务同时回滚旧令牌撤销与新令牌创建。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task FailedRotationRollsBackRevocationAndReplacement()
     {
@@ -188,6 +202,8 @@ public sealed class PersistenceTests
         Assert.Equal(HttpStatusCode.NoContent, stillValid.StatusCode);
     }
 
+    /// <summary>重建宿主后验证配置历史、管理员凭证、原会话及应用授权仍可用。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task RestartKeepsConfigurationHistoryAdminSessionAndApplicationAuthorization()
     {

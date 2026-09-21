@@ -8,6 +8,6 @@
 - 现有依赖和 `AddServiceDefaults()` 已完成公共注册，不能照搬技能示例在 Server 再添加一套 provider、instrumentation 或 exporter。
 - 按环境配置决定 OTLP 导出，避免硬编码收集器地址。健康检查目前仅在 Development 映射，改变暴露范围需结合部署与认证设计。
 - 遥测使用配置标识、操作结果和耗时等信息，不采集配置正文、凭证或敏感标签。避免按配置值生成高基数指标。
-- 调整 HttpClient 重试时评估写操作的幂等性与取消传播，避免重复发布或重复变更。
+- 调整 HttpClient 重试时核对已经注册的标准弹性处理器，避免调用层、客户端和 provider 重试叠加放大请求。重试必须有次数与总时间边界并传递取消，不能重试已取消操作；写操作先确认幂等性，未确认前不能用自动重试掩盖失败或造成重复发布。
 - 配置长轮询的超时、重试与取消必须匹配监听协议；不能直接套用短请求超时，也不能为客户端 SDK 引入对 Server 业务代码的依赖。
 - 改动后从根目录执行 `dotnet build .\src\backend\Trelix.ServiceDefaults\Trelix.ServiceDefaults.csproj --nologo -v:q -clp:ErrorsOnly`，只读取 error 与退出码；涉及公共注册时额外验证 Server 启动。

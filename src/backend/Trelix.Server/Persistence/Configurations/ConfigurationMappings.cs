@@ -4,8 +4,11 @@ using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Persistence.Configurations;
 
+/// <summary>配置项目标识唯一性和显示字段长度。</summary>
 public sealed class ProjectMapping : IEntityTypeConfiguration<Project>
 {
+    /// <summary>配置项目标识唯一性和显示字段长度。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<Project> builder)
     {
         builder.HasKey(x => x.Id);
@@ -15,8 +18,11 @@ public sealed class ProjectMapping : IEntityTypeConfiguration<Project>
     }
 }
 
+/// <summary>配置项目内环境标识唯一性与项目关联。</summary>
 public sealed class EnvironmentMapping : IEntityTypeConfiguration<ProjectEnvironment>
 {
+    /// <summary>配置项目内环境标识唯一性与项目关联。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<ProjectEnvironment> builder)
     {
         builder.HasKey(x => x.Id);
@@ -27,8 +33,11 @@ public sealed class EnvironmentMapping : IEntityTypeConfiguration<ProjectEnviron
     }
 }
 
+/// <summary>配置文件名唯一性、当前发布关联、草稿约束与并发标记。</summary>
 public sealed class ConfigFileMapping : IEntityTypeConfiguration<ConfigFile>
 {
+    /// <summary>配置文件名唯一性、当前发布关联、草稿约束与并发标记。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<ConfigFile> builder)
     {
         builder.HasKey(x => x.Id);
@@ -46,8 +55,11 @@ public sealed class ConfigFileMapping : IEntityTypeConfiguration<ConfigFile>
     }
 }
 
+/// <summary>配置文件内发布版本唯一性、回滚来源与有效 JSON 约束。</summary>
 public sealed class ReleaseMapping : IEntityTypeConfiguration<Release>
 {
+    /// <summary>配置文件内发布版本唯一性、回滚来源与有效 JSON 约束。</summary>
+    /// <param name="builder">当前实体的 EF 映射构建器。</param>
     public void Configure(EntityTypeBuilder<Release> builder)
     {
         builder.HasKey(x => new { x.ConfigFileId, x.Version });

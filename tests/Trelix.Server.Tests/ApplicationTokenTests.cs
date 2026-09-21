@@ -7,10 +7,16 @@ using Trelix.Server.Infrastructure.Authentication;
 
 namespace Trelix.Server.Tests;
 
+/// <summary>验证应用令牌生命周期、授权范围、凭证存储与管理接口隔离。</summary>
 public sealed class ApplicationTokenTests
 {
     private const string TokensPath = "/api/admin/application-tokens";
 
+    /// <summary>通过管理 API 签发测试令牌并验证创建响应。</summary>
+    /// <param name="app">当前集成测试宿主。</param>
+    /// <param name="admin">已登录管理员且已配置防伪造请求头的客户端。</param>
+    /// <param name="scopes">令牌允许访问的项目环境集合。</param>
+    /// <returns>令牌元数据及一次性原文。</returns>
     private static async Task<IssuedApplicationTokenResponse> IssueAsync(ServerFactory app, HttpClient admin, params TokenScopeRequest[] scopes)
     {
         using var response = await admin.PostAsJsonAsync(TokensPath, new CreateApplicationTokenRequest
@@ -23,6 +29,12 @@ public sealed class ApplicationTokenTests
         return (await response.Content.ReadFromJsonAsync<IssuedApplicationTokenResponse>())!;
     }
 
+    /// <summary>使用指定凭证请求应用资源授权探针。</summary>
+    /// <param name="client">用于当前测试请求的 HTTP 客户端。</param>
+    /// <param name="secret">应用凭证原文。</param>
+    /// <param name="projectId">目标项目标识。</param>
+    /// <param name="environmentId">目标环境标识。</param>
+    /// <returns>探针返回的 HTTP 状态码。</returns>
     private static async Task<HttpStatusCode> ProbeAsync(HttpClient client, string? secret, Guid projectId, Guid environmentId)
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, $"/__tests/application/{projectId}/{environmentId}");
@@ -32,6 +44,8 @@ public sealed class ApplicationTokenTests
         return response.StatusCode;
     }
 
+    /// <summary>验证多范围授权、跨资源拒绝以及持久化和日志中的凭证边界。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task MultipleScopesAreValidatedAndOnlyDigestIsStored()
     {
@@ -64,6 +78,9 @@ public sealed class ApplicationTokenTests
         Assert.True(!log.Contains(issued.Secret) && !log.Contains(app.Password) && !log.Contains(hash));
     }
 
+    /// <summary>验证无效名称、有效期或授权范围被拒绝且不会写入令牌。</summary>
+    /// <param name="scenario">本次验证的无效输入或数据库约束场景。</param>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Theory]
     [InlineData("past")]
     [InlineData("empty-name")]
@@ -98,6 +115,8 @@ public sealed class ApplicationTokenTests
         Assert.Equal(0, await app.WithDbAsync(db => db.ApplicationTokens.CountAsync()));
     }
 
+    /// <summary>验证有效期必填且列表页大小受限。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task ExpiryIsRequiredAndListIsBounded()
     {
@@ -113,6 +132,8 @@ public sealed class ApplicationTokenTests
         Assert.Equal(HttpStatusCode.NotFound, missingToken.StatusCode);
     }
 
+    /// <summary>验证应用凭证与管理员 Cookie 隔离，管理写请求必须携带防伪造令牌。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task SchemesAreIsolatedAndManagementWritesRequireCsrf()
     {
@@ -138,6 +159,8 @@ public sealed class ApplicationTokenTests
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, issued.Secret, resources.First.Id, resources.FirstEnv.Id));
     }
 
+    /// <summary>验证缺少、伪造与过期的应用凭证均返回 401。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task MissingInvalidAndExpiredCredentialsReturn401()
     {
@@ -154,6 +177,8 @@ public sealed class ApplicationTokenTests
         Assert.Equal(HttpStatusCode.Unauthorized, await ProbeAsync(consumer, issued.Secret, resources.First.Id, resources.FirstEnv.Id));
     }
 
+    /// <summary>验证轮换保留授权范围、立即废止旧令牌，并支持幂等撤销。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task RotationImmediatelyRevokesOldSecretAndPreservesScopes()
     {
@@ -183,6 +208,8 @@ public sealed class ApplicationTokenTests
         Assert.Equal(HttpStatusCode.Unauthorized, await ProbeAsync(consumer, replacement.Secret, resources.First.Id, resources.FirstEnv.Id));
     }
 
+    /// <summary>验证并发轮换仅签发一个有效后继令牌，另一个请求返回冲突。</summary>
+    /// <returns>表示测试场景执行完成的任务。</returns>
     [Fact]
     public async Task ConcurrentRotationCreatesExactlyOneReplacement()
     {

@@ -1,5 +1,6 @@
 namespace Trelix.Server.Infrastructure.Authentication;
 
+/// <summary>集中维护管理员与应用认证方案、策略名称及会话约定。</summary>
 public static class AuthenticationConstants
 {
     public const string AdministratorScheme = "AdministratorCookie";

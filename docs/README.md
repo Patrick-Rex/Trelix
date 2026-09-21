@@ -22,7 +22,7 @@
 ## 文档与指引作用域
 
 - 根目录 `docs/` 维护跨模块的产品、架构、交付与操作信息。
-- [后端公共指引](../src/backend/AGENTS.md) 约束 `src/backend/` 下的项目；Core 的归属规则统一维护在 [职责边界](architecture.md#通用技术与业务基础设施边界)；[Server](../src/backend/Trelix.Server/AGENTS.md) 和 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 指引只维护各自实现细节。
+- [后端公共指引](../src/backend/AGENTS.md) 约束 `src/backend/` 下的项目，并集中维护 [性能反模式约束](../src/backend/AGENTS.md#性能反模式约束) 及官方来源；Core 的归属规则统一维护在 [职责边界](architecture.md#通用技术与业务基础设施边界)；[Server](../src/backend/Trelix.Server/AGENTS.md) 和 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 指引只维护各自实现细节。
 - [前端指引](../src/frontend/AGENTS.md) 维护 Vue、编辑器与界面验证约束；[前端 README](../src/frontend/README.md) 维护独立开发命令和编辑器说明。
 - [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) 维护本地编排约束。AppHost 位于 `src/backend/` 之外，不继承后端目录指引。
 - 模块中的模板 `CHANGELOG.md` 记录生成来源，不承担产品路线图或交付验收职责。
@@ -38,6 +38,7 @@
 | 实现 .NET SDK | 产品方案中的配置集成 → 架构中的 SDK 边界 → 质量与验收 |
 | 修改 Core 通用技术能力 | 后端公共指引 → 架构中的通用技术与业务基础设施边界 → 对应技能 |
 | 修改遥测、健康检查、服务发现或 HTTP 弹性 | 后端公共指引 → ServiceDefaults 指引 → 对应技能 |
+| 后端性能检查或优化 | 后端性能反模式约束 → 相关模块指引与源码 → 质量与验收中的性能变更验证 |
 | 修改启动、交付或部署 | AppHost 或 Server 指引 → 本地开发或生产部署 → 架构中的运行边界 |
 | 仅修改文档 | 本索引 → 所属主文档 → 引用它的入口与受影响模块指引 |
 

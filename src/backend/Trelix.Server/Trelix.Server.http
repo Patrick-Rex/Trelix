@@ -10,6 +10,18 @@
 # 从运行环境取得实际地址；敏感变量只放在 HTTP 客户端的外部私有环境中。
 # 客户端须保存并发送响应 Cookie；登录后重新获取防伪造令牌。
 
+### Development 环境 Scalar UI
+GET {{baseUrl}}/scalar/admin
+Accept: text/html
+
+### Development 环境管理 API 文档
+GET {{baseUrl}}/openapi/admin.json
+Accept: application/json
+
+### Development 环境应用 API 文档
+GET {{baseUrl}}/openapi/application.json
+Accept: application/json
+
 ### Development 环境健康检查
 GET {{baseUrl}}/health
 Accept: text/plain

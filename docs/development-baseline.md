@@ -12,7 +12,7 @@
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |
 | .NET 依赖管理 | 集中管理 SDK、构建属性、NuGet 包版本和包源 | 根目录配置，见下文；不启用预览 SDK，不自动跨主版本升级 |
-| HTTP API | ASP.NET Core Controllers + 内置 OpenAPI；独立 DTO 和 Problem Details 错误 | 管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；OpenAPI 包版本源为 [Directory.Packages.props](../Directory.Packages.props) |
+| HTTP API | ASP.NET Core Controllers + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
 | 本地编排 | Aspire 13.5 | AppHost SDK 与 JavaScript 集成包均为 13.5.4，分别由 `global.json` 与 `Directory.Packages.props` 管理 |
 | 公共运行能力 | ServiceDefaults 提供 OpenTelemetry、健康检查、服务发现与 HTTP 弹性 | 公共注册由 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 维护；避免重复注册 |
 | 前端框架 | Vue 3 + Vite + Composition API | [package.json](../src/frontend/package.json) 声明 Vue `^3.5.42`、Vite `^8.3.0`；安装版本由锁文件确定 |
@@ -30,6 +30,10 @@
 SQLite 的选型边界参考 [官方说明](https://www.sqlite.org/whentouse.html)。持久化与备份必须覆盖配置、版本、管理员及应用令牌授权信息。
 
 ## .NET 统一配置
+
+手写类型与方法的标准文档注释遵循 [根指引](../AGENTS.md#实现与文档)。Server 启用 XML 文档生成，供内置 OpenAPI 读取 API 契约说明；生成代码由生成器维护。
+
+后端新增与修改代码遵循 [性能反模式约束](../src/backend/AGENTS.md#性能反模式约束)，覆盖异步与资源边界、分配、集合、序列化、HTTP 及缓存；性能结论按 [性能变更验证](quality.md#性能变更验证) 提供证据。约束参考微软官方资料并适配现有基线，不代表已经安装相应技能、启用自动分析器、Native AOT、裁剪或新增基准测试依赖。
 
 四个配置文件位于包含 `Trelix.slnx` 的根目录，使 Server、Core、ServiceDefaults、AppHost、配置 SDK、示例及 .NET 测试项目使用同一套配置；不在模块目录另建同名文件覆盖根配置。
 

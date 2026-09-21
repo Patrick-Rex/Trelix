@@ -13,11 +13,16 @@ namespace Microsoft.Extensions.Hosting;
 // Adds common Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
 // This project should be referenced by each service project in your solution.
 // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
+/// <summary>注册宿主共用的遥测、健康检查、服务发现和 HTTP 弹性能力。</summary>
 public static class Extensions
 {
     private const string HealthEndpointPath = "/health";
     private const string AlivenessEndpointPath = "/alive";
 
+    /// <summary>注册公共宿主能力，并为 HttpClient 启用服务发现与标准弹性处理。</summary>
+    /// <typeparam name="TBuilder">宿主构建器类型。</typeparam>
+    /// <param name="builder">待配置的宿主构建器。</param>
+    /// <returns>原宿主构建器，供链式配置使用。</returns>
     public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.ConfigureOpenTelemetry();
@@ -44,6 +49,10 @@ public static class Extensions
         return builder;
     }
 
+    /// <summary>配置日志、指标和追踪，排除健康检查请求的追踪数据。</summary>
+    /// <typeparam name="TBuilder">宿主构建器类型。</typeparam>
+    /// <param name="builder">待配置的宿主构建器。</param>
+    /// <returns>原宿主构建器。</returns>
     public static TBuilder ConfigureOpenTelemetry<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Logging.AddOpenTelemetry(logging =>
@@ -78,6 +87,10 @@ public static class Extensions
         return builder;
     }
 
+    /// <summary>仅在配置 OTLP 端点时启用遥测导出。</summary>
+    /// <typeparam name="TBuilder">宿主构建器类型。</typeparam>
+    /// <param name="builder">待配置的宿主构建器。</param>
+    /// <returns>原宿主构建器。</returns>
     private static TBuilder AddOpenTelemetryExporters<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
@@ -97,6 +110,10 @@ public static class Extensions
         return builder;
     }
 
+    /// <summary>注册表示进程可响应的存活检查。</summary>
+    /// <typeparam name="TBuilder">宿主构建器类型。</typeparam>
+    /// <param name="builder">待配置的宿主构建器。</param>
+    /// <returns>原宿主构建器。</returns>
     public static TBuilder AddDefaultHealthChecks<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
     {
         builder.Services.AddHealthChecks()
@@ -106,6 +123,9 @@ public static class Extensions
         return builder;
     }
 
+    /// <summary>仅在开发环境映射就绪与存活检查端点。</summary>
+    /// <param name="app">待映射公共端点的 Web 应用。</param>
+    /// <returns>原 Web 应用。</returns>
     public static WebApplication MapDefaultEndpoints(this WebApplication app)
     {
         // Adding health checks endpoints to applications in non-development environments has security implications.

@@ -29,7 +29,7 @@ Server 的 User Secrets 标识已在项目中配置。首次启动前，用 IDE 
 
 数据目录包含 `trelix.db`、SQLite 运行时伴随文件及 `keys` 子目录。保持同一目录可在重启后恢复数据与未过期会话；不要清空密钥目录。目录包含敏感认证数据，不应提交、公开共享或作为静态资源发布。
 
-管理员 API 样例见 [Trelix.Server.http](../src/backend/Trelix.Server/Trelix.Server.http)。HTTP 客户端先获取 `/api/admin/auth/antiforgery` 并保存其 Cookie，登录请求携带返回的 `X-Trelix-CSRF` 请求令牌。登录成功后重新获取绑定管理员身份的防伪造令牌，供退出及后续管理写请求使用。`/api/admin/auth/session` 查询当前会话；会话固定 8 小时、不自动续期，退出后旧 Cookie 失效。Development 环境提供 `/openapi/admin.json` 和 `/openapi/application.json`；应用分组随后续分发 API 接入，当前无公开应用读取入口。
+管理员 API 样例见 [Trelix.Server.http](../src/backend/Trelix.Server/Trelix.Server.http)。HTTP 客户端先获取 `/api/admin/auth/antiforgery` 并保存其 Cookie，登录请求携带返回的 `X-Trelix-CSRF` 请求令牌。登录成功后重新获取绑定管理员身份的防伪造令牌，供退出及后续管理写请求使用。`/api/admin/auth/session` 查询当前会话；会话固定 8 小时、不自动续期，退出后旧 Cookie 失效。交互式文档入口见下文 [API 文档](#api-文档)。
 
 令牌管理使用 `/api/admin/application-tokens`，支持创建、分页查询、单个查询，以及 `/{id}/revoke`、`/{id}/rotate`。创建接受 `name`、`expiresAt` 与 `scopes`，每个 scope 包含 `projectId` 和 `environmentId`；名称最多 200 字符，范围为 1–100 个且不得重复环境，服务端验证归属。分页默认每页 50 条，最多 100 条。轮换接受新的 `expiresAt`，成功返回 201 和新令牌资源位置；原文只在创建或轮换响应的 `secret` 中返回一次。管理列表包含已过期和撤销记录，客户端按元数据展示状态。
 
@@ -61,6 +61,12 @@ dotnet run --project .\src\Trelix.AppHost\Trelix.AppHost.csproj --launch-profile
 
 以上用于本地开发。首版生产采用 Linux Docker 单容器统一交付，部署契约见 [生产部署](deployment.md)；当前生产打包与部署尚未实现。
 
+### API 文档
+
+仅当 Server 的 ASP.NET Core 环境为 `Development` 时，提供 Scalar UI 与 OpenAPI JSON。启动后从 Aspire 面板获取 `trelix-server` 的 HTTPS 地址，在该地址下访问 `/scalar`；默认展示管理 API，可切换应用 API。也可直接访问 `/scalar/admin` 或 `/scalar/application`。文档入口使用 Server 地址，前端 Vite 不代理 Scalar。
+
+两组 JSON 文档分别位于 `/openapi/admin.json` 与 `/openapi/application.json`；当前应用分组尚无公开读取入口，随分发 API 接入。Server 生成 XML 文档供 OpenAPI 展示契约说明。Scalar 使用包内脚本，关闭默认外部字体及 Agent；文档匿名可读，执行管理 API 仍须按上述 Cookie 与防伪造流程认证。`Production`、`Staging` 等非开发环境不映射文档页面、脚本和 JSON 端点。
+
 ## 构建与验证
 
 从项目根目录构建整个解决方案：
@@ -86,3 +92,5 @@ dotnet test --project .\tests\Trelix.Server.Tests\Trelix.Server.Tests.csproj --v
 该命令默认构建项目；仅在当前代码已构建时追加 `--no-build`。原生 MTP 使用 `--project`，不使用 VSTest 的位置项目参数或桥接分隔符。构建输出按根指引仅检查 error 与退出码，测试检查实际通过、失败和跳过数量。
 
 测试通过 WebApplicationFactory 在进程内启动 Server，使用独立 SQLite 文件、Data Protection 目录及运行时随机凭证，不需要真实管理员机密或开放监听端口。临时文件位于 Git 忽略的 `artifacts/m2-tests`，正常结束后清理；测试用授权探针只注册到测试宿主，不包含在 Server 发布程序集。重启验证关闭并重新创建宿主、重开同一数据库和密钥目录，不替代 M6 的真实进程与容器恢复验证。
+
+[OpenAPI 测试](../tests/Trelix.Server.Tests/OpenApiTests.cs) 验证开发环境的 Scalar 页面、本地脚本、两组 JSON 文档与 XML 契约说明，并检查 Production、Staging 不注册文档端点。
