@@ -76,9 +76,21 @@ public static class ServerServices
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+            // 保留原固定窗口配置供对照。
+            // options.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+            //     context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            //     _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            // 每个来源 IP 最多积攒 10 个令牌，每 6 秒补充 1 个；耗尽后立即拒绝。
+            options.AddPolicy("login", context => RateLimitPartition.GetTokenBucketLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+                static _ => new TokenBucketRateLimiterOptions
+                {
+                    TokenLimit = 10,
+                    TokensPerPeriod = 1,
+                    ReplenishmentPeriod = TimeSpan.FromSeconds(6),
+                    AutoReplenishment = true,
+                    QueueLimit = 0
+                }));
         });
         services.AddProblemDetails(options => options.CustomizeProblemDetails = ApiErrors.Customize);
         services.AddExceptionHandler<ApiOperationExceptionHandler>();
