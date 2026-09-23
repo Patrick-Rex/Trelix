@@ -6,11 +6,14 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Trelix.Core.Middleware;
 using Trelix.Server.Features.Authentication;
 using Trelix.Server.Features.ApplicationTokens;
+using Trelix.Server.Features.Projects;
+using Trelix.Server.Features.ConfigFiles;
+using Trelix.Server.Features.Releases;
+using Trelix.Server.Features.Distribution;
 using Trelix.Server.Infrastructure.Authentication;
 using Trelix.Server.Infrastructure.Middleware;
 using Trelix.Server.Persistence;
@@ -35,8 +38,11 @@ public static class ServerServices
         services.AddScoped<IPasswordHasher<Administrator>, PasswordHasher<Administrator>>();
         services.AddScoped<AdministratorSessionService>();
         services.AddScoped<ApplicationTokenService>();
+        services.AddScoped<ProjectService>();
+        services.AddScoped<ConfigFileService>();
+        services.AddScoped<ReleaseService>();
+        services.AddScoped<DistributionService>();
         services.AddScoped<AdministratorCookieEvents>();
-        services.AddScoped<ManagementAntiforgeryFilter>();
         services.AddScoped<IAuthorizationHandler, ApplicationScopeHandler>();
         services.AddHttpContextAccessor();
 
@@ -95,9 +101,8 @@ public static class ServerServices
         services.AddProblemDetails(options => options.CustomizeProblemDetails = ApiErrors.Customize);
         services.AddExceptionHandler<ApiOperationExceptionHandler>();
         services.AddExceptionHandler<SafeExceptionHandler>();
-        services.AddControllers(options => options.Filters.AddService<ManagementAntiforgeryFilter>())
-            .ConfigureApiBehaviorOptions(options => options.InvalidModelStateResponseFactory = context =>
-                ApiErrors.Result(context.HttpContext, 400, "invalid_request", "请求字段缺失或格式无效。"));
+        services.AddValidation();
+        services.Configure<Microsoft.AspNetCore.Routing.RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
         services.AddOpenApi("admin");
         services.AddOpenApi("application");
         return services;

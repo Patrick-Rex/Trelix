@@ -174,7 +174,7 @@ public sealed class AuthenticationTests
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
         Assert.Equal("application/problem+json", unknown.Content.Headers.ContentType?.MediaType);
         var schema = await client.GetFromJsonAsync<JsonElement>("/openapi/admin.json", cancellationToken: TestContext.Current.CancellationToken);
-        Assert.Equal(8, schema.GetProperty("paths").EnumerateObject().Count());
+        Assert.Equal(18, schema.GetProperty("paths").EnumerateObject().Count());
         Assert.True(schema.GetProperty("paths").TryGetProperty("/api/admin/application-tokens/{id}/rotate", out _));
         await app.LoginAsync(client);
         using var failed = await client.GetAsync("/api/admin/__tests/failure", cancellationToken: TestContext.Current.CancellationToken);

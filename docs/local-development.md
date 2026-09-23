@@ -1,6 +1,6 @@
 # 本地开发
 
-本文统一维护跨前后端的环境准备、启动与联调说明。技术版本见 [技术基线](development-baseline.md)，开发约束见 [根指引](../AGENTS.md)。基础工程联调见 [M1 验收记录](verification/m1.md)，存储与认证验证见 [M2 验收记录](verification/m2.md)。
+本文统一维护跨前后端的环境准备、启动与联调说明。技术版本见 [技术基线](development-baseline.md)，开发约束见 [根指引](../AGENTS.md)。基础工程联调见 [M1 验收记录](verification/m1.md)，存储与认证验证见 [M2 验收记录](verification/m2.md)，配置发布与读取验证见 [M3 验收记录](verification/m3.md)。
 
 ## 环境准备
 
@@ -33,7 +33,7 @@ Server 的 User Secrets 标识已在项目中配置。首次启动前，用 IDE 
 
 令牌管理使用 `/api/admin/application-tokens`，支持创建、分页查询、单个查询，以及 `/{id}/revoke`、`/{id}/rotate`。创建接受 `name`、`expiresAt` 与 `scopes`，每个 scope 包含 `projectId` 和 `environmentId`；名称最多 200 字符，范围为 1–100 个且不得重复环境，服务端验证归属。分页默认每页 50 条，最多 100 条。轮换接受新的 `expiresAt`，成功返回 201 和新令牌资源位置；原文只在创建或轮换响应的 `secret` 中返回一次。管理列表包含已过期和撤销记录，客户端按元数据展示状态。
 
-M2 未提供项目/环境管理 API，因此空数据库不能创建有效范围的应用令牌；端到端业务使用从 M3 接入资源管理开始。M2 集成测试通过测试夹具建立资源，再验证真实令牌管理 API 与认证方案；不要向正常运行数据库手工植入生产资源来替代后续管理功能。
+空数据库可直接通过下述配置管理 API 创建项目、环境和文件，再创建对应范围的应用令牌，不需要手工植入数据库资源。
 
 EF 工具版本在 [.NET 工具清单](../.config/dotnet-tools.json) 固定，迁移位于 [Persistence/Migrations](../src/backend/Trelix.Server/Persistence/Migrations)。修改模型后，从项目根目录执行：
 
@@ -67,7 +67,31 @@ AppHost 保持通过 NuGet 还原编排依赖，显式设置 `AspireUseCliBundle
 
 仅当 Server 的 ASP.NET Core 环境为 `Development` 时，提供 Scalar UI 与 OpenAPI JSON。启动后从 Aspire 面板获取 `trelix-server` 的 HTTPS 地址，在该地址下访问 `/scalar`；默认展示管理 API，可切换应用 API。也可直接访问 `/scalar/admin` 或 `/scalar/application`。文档入口使用 Server 地址，前端 Vite 不代理 Scalar。
 
-两组 JSON 文档分别位于 `/openapi/admin.json` 与 `/openapi/application.json`；当前应用分组尚无公开读取入口，随分发 API 接入。Server 生成 XML 文档供 OpenAPI 展示契约说明。Scalar 使用包内脚本，关闭默认外部字体及 Agent；文档匿名可读，执行管理 API 仍须按上述 Cookie 与防伪造流程认证。`Production`、`Staging` 等非开发环境不映射文档页面、脚本和 JSON 端点。
+两组 JSON 文档分别位于 `/openapi/admin.json` 与 `/openapi/application.json`；应用分组提供当前已发布配置读取。Server 使用 Minimal APIs 和内置验证，生成 XML 文档供 OpenAPI 展示契约说明。Scalar 使用包内脚本，关闭默认外部字体及 Agent；文档匿名可读，执行管理 API 仍须按上述 Cookie 与防伪造流程认证。`Production`、`Staging` 等非开发环境不映射文档页面、脚本和 JSON 端点。
+
+### 配置管理与应用读取
+
+以下路径中的项目、环境、文件使用响应中返回的内部 ID，写操作同时携带管理员 Cookie 和 `X-Trelix-CSRF`。所有 API 响应使用 `Cache-Control: no-store`。完整可编辑样例见 [Trelix.Server.http](../src/backend/Trelix.Server/Trelix.Server.http)。
+
+| 操作 | 路径与请求 |
+| --- | --- |
+| 项目列表、创建 | `GET/POST /api/admin/projects`；创建提交 `key`、`displayName` |
+| 项目读取、重命名、删除 | `GET/PUT/DELETE /api/admin/projects/{projectId}`；重命名提交 `key`、`displayName`、`concurrencyStamp`；删除通过查询参数传 `concurrencyStamp` |
+| 环境列表、创建 | `GET/POST /api/admin/projects/{projectId}/environments`；创建提交 `key`、`displayName` |
+| 环境读取、重命名、删除 | 在环境列表路径追加 `/{environmentId}`，使用 `GET/PUT/DELETE`；字段与项目操作相同 |
+| 文件列表、创建 | 在指定环境路径追加 `/files`，使用 `GET/POST`；创建只提交 `name`，初始无草稿、无发布 |
+| 文件与草稿读取、重命名、删除 | 在文件列表路径追加 `/{fileId}`，使用 `GET/PUT/DELETE`；读取返回 `file` 元数据与 `json` 草稿；重命名提交 `name`、`concurrencyStamp`，删除通过查询参数传并发基准 |
+| 保存草稿 | `PUT` 指定文件路径下的 `/draft`；提交 `json` 字符串及 `concurrencyStamp`，成功返回新草稿修订和并发标记 |
+| 发布草稿、历史列表 | `POST/GET` 指定文件路径下的 `/releases`；发布提交明确的 `draftRevision` 和 `concurrencyStamp`，成功返回 201、`file`、`release` 与 Location |
+| 历史正文 | `GET` 指定文件路径下的 `/releases/{version}`；返回 `release` 元数据与 `json` 原文 |
+| 回滚 | `POST` 指定文件路径下的 `/rollback`；提交 `sourceVersion` 与 `concurrencyStamp`，生成新版本并保留当前草稿，返回结构与发布相同 |
+| 应用读取 | `GET /api/application/configuration`；查询参数为 `projectKey`、`environmentKey`、`fileName`，名称须进行 URL 编码；请求头携带 `Authorization: Bearer <application-token>` |
+
+资源与历史列表都接受 `page`、`pageSize`，默认 1、50，范围为 1–1000000、1–100；项目、环境、文件按业务名称和内部 ID 稳定排序，历史按版本倒序。列表不返回配置正文，响应包含 `items`、`page`、`pageSize`。
+
+每次文件写操作后使用响应中的新 `concurrencyStamp`；保存草稿递增 `draftRevision`，发布必须选择当前草稿修订。应用读取返回同一发布快照的 `configFileId`、`version`、`publishedAt` 和 `json`；未发布或已删除文件返回 404。名称按原值区分大小写，重命名后应用更新名称，授权继续绑定内部项目环境。删除文件永久删除全部草稿和历史；非空项目、带文件或授权记录的环境返回 409，撤销令牌不删除其授权记录。JSON 限制见 [产品规则](product-plan.md#产品定位与配置组织)。
+
+错误使用 Problem Details，包含 `status`、安全的 `title`、`code` 和 `traceId`。缺少基准或字段无效返回 400；过期基准为 409 `concurrent_change`，错草稿修订为 409 `draft_changed`，无草稿为 409 `draft_missing`，重名为 409 `duplicate_resource`，资源仍被引用为 409 `resource_in_use`。错误不返回配置正文，客户端应保留编辑缓冲并重新读取核对。真实应用读取执行令牌生命周期与资源授权，未认证返回 401，越权返回 403；管理 Cookie 不能代替应用令牌。
 
 ## 构建与验证
 
@@ -96,5 +120,7 @@ dotnet test --project .\tests\Trelix.Server.Tests\Trelix.Server.Tests.csproj --v
 测试通过 WebApplicationFactory 在进程内启动 Server，使用独立 SQLite 文件、Data Protection 目录及运行时随机凭证，不需要真实管理员机密或开放监听端口。临时文件位于 Git 忽略的 `artifacts/m2-tests`，正常结束后清理；测试用授权探针只注册到测试宿主，不包含在 Server 发布程序集。重启验证关闭并重新创建宿主、重开同一数据库和密钥目录，不替代 M6 的真实进程与容器恢复验证。
 
 [OpenAPI 测试](../tests/Trelix.Server.Tests/OpenApiTests.cs) 验证开发环境的 Scalar 页面、本地脚本、两组 JSON 文档与 XML 契约说明，并检查 Production、Staging 不注册文档端点。
+
+M3 的 `Configuration*Tests` 从真实管理 API 创建资源，并调用正式应用读取端点验证隔离、事务、回滚及授权；旧库升级测试从初始迁移与已有发布历史开始，验证启动升级后的可用性。结果与边界见 [M3 验收记录](verification/m3.md)。
 
 测试及其辅助方法的 HTTP、响应读取与 EF 异步调用传递 `TestContext.Current.CancellationToken`，使测试取消能够终止相关 I/O。

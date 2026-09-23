@@ -77,7 +77,7 @@ Trelix/
 
 `tests/` 下为 .NET 测试项目；前端测试留在前端工程内并使用同一 npm 依赖体系。`samples/` 是 SDK 使用方示例，不承担 Server 业务实现。`deploy/` 保存构建和部署资产，持久化数据及密钥不放入这些源码目录。
 
-单个后端业务目录内就近放置 Controller、用例服务、请求/响应 DTO 与业务校验。按功能需要建立文件，不机械地为每个用例生成接口、仓储或多层转发类。`Persistence` 负责 EF 映射和存取基础，用例服务可直接使用 DbContext，业务事务边界由用例服务控制，不再包装通用仓储。
+单个后端业务目录内就近放置 Minimal API Endpoints、用例服务、请求/响应 DTO 与业务校验。按功能需要建立文件，不机械地为每个用例生成接口、仓储或多层转发类。`Persistence` 负责 EF 映射和存取基础，用例服务可直接使用 DbContext，业务事务边界由用例服务控制，不再包装通用仓储。
 
 ## 依赖规则
 
@@ -87,7 +87,7 @@ flowchart TB
     AppHost --> Frontend[Vite 前端开发进程]
     Server --> Defaults[ServiceDefaults]
     Server --> Core[Trelix.Core 通用技术基础设施]
-    Controllers[Server 业务 Controller] --> UseCases[同业务用例服务]
+    Endpoints[Server 业务端点] --> UseCases[同业务用例服务]
     UseCases --> Persistence[Persistence / EF Core]
     UseCases --> Infrastructure[认证与通知等技术能力]
     Sample[SampleApp] --> SDK[Trelix.Extensions.Configuration]
@@ -95,7 +95,7 @@ flowchart TB
     Browser[生产浏览器界面] -->|HTTP 契约| Server
 ```
 
-- Server 是服务端业务和存储的唯一宿主；各业务目录之间通过明确用例协作，不跨模块调用 Controller。
+- Server 是服务端业务和存储的唯一宿主；各业务目录之间通过明确用例协作，不跨模块调用端点处理器。
 - Server 引用 Core 与 ServiceDefaults；Core 不引用 Server、ServiceDefaults、AppHost 或 SDK，不包含配置中心业务类型。Core 与 ServiceDefaults 分别由 Server 装配。
 - HTTP DTO 与持久化实体分开；SDK 与前端通过公开 HTTP 契约交互，不引用 Server 程序集、EF Core 实体或数据库。
 - ServiceDefaults 只提供公共运行能力，不反向引用 Server 或 SDK 业务类型。
@@ -131,7 +131,7 @@ flowchart LR
 | 模块 | 承担职责 | 边界 |
 | --- | --- | --- |
 | `src/frontend` | 管理员交互、资源选择、编辑文档状态、JSON/YAML/Tree 视图与 API 调用 | 不直接访问数据库；浏览器校验不能替代服务端校验和授权 |
-| `src/backend/Trelix.Server` | 管理 API、应用 API、认证授权、配置校验、发布事务、历史版本与数据访问 | 业务逻辑留在 Server；Controller 处理 HTTP，复杂业务由应用服务承担 |
+| `src/backend/Trelix.Server` | 管理 API、应用 API、认证授权、配置校验、发布事务、历史版本与数据访问 | 业务逻辑留在 Server；Endpoints 处理 HTTP，复杂业务由应用服务承担 |
 | `src/backend/Trelix.Core` | 通用异常处理、中间件、序列化辅助与技术组件注册扩展 | 不包含项目、环境、配置文件、发布版本等业务概念；不承载业务实体、DbContext、迁移或权限规则 |
 | `src/backend/Trelix.ServiceDefaults` | 遥测、健康检查、服务发现和 HTTP 弹性 | 不依赖 Server 业务类型、实体、DbContext 或前端；Server 复用其注册 |
 | `src/Trelix.AppHost` | 本地进程编排、连接信息传递与启动顺序 | 不保存配置业务数据，不执行配置发布；不承担生产容器中的应用入口 |
@@ -203,6 +203,8 @@ erDiagram
 
 当前 EF 模型将 UTC 时间转换为 SQLite INTEGER ticks，API 仍使用 DateTimeOffset。草稿正文及修订保存在 ConfigFile，Release 以 `(ConfigFileId, Version)` 为复合主键；当前发布指向与回滚来源通过同一文件内的复合外键关联。Administrator 的主键受单例检查约束保护；AdministratorSession 保存会话到期时间及管理员安全标记，每次 Cookie 请求重新核验。Data Protection 密钥和 SQLite 统一存放在外部可配置的数据目录，启动与迁移操作见 [本地开发](local-development.md#server-存储与首次初始化)。
 
+项目和环境同样维护并发标记。重命名仅改变业务名称，不改变 ID、父子关系或令牌授权。文件删除先按并发基准清除当前发布指向，再批量删除历史并删除文件，所有写入处于同一事务；回滚来源外键使用 NO ACTION，使同一语句删除文件的全部历史时仍能在语句结束检查关联完整性。项目和环境删除由业务检查及数据库外键共同阻止仍被引用的资源删除。
+
 ### 修订与发布身份
 
 草稿修订用于识别被编辑和选中发布的内容；发布版本用于识别应用可读取的历史内容；并发基准用于防止过期调用覆盖新操作。三者不能用前端请求时间或进程内自增计数代替。
@@ -231,7 +233,9 @@ flowchart LR
 4. 提交失败时返回可识别错误，不留下部分结果，不发出发布通知。
 5. 提交成功后唤醒该文件的监听者；监听者通过持久化发布记录确认变化并读取内容。
 
-Controller、事务服务、通知管理分别承担 HTTP、持久化和等待唤醒职责；等待客户端编辑或长轮询时不持有数据库事务。
+Endpoints、事务服务、通知管理分别承担 HTTP、持久化和等待唤醒职责；等待客户端编辑或长轮询时不持有数据库事务。
+
+M3 的发布服务先在事务内执行包含原始并发标记的文件 UPDATE，再读取文件已有最大版本并分配下一版本，插入发布记录、更新指向后提交。回滚使用源历史正文及其草稿修订，不覆盖当前草稿。通知管理与长轮询在 M5 接入；现有服务仅在成功提交后返回发布结果，未注册通知等待者。
 
 ## HTTP 与监听边界
 

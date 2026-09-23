@@ -252,7 +252,7 @@ public sealed class PersistenceTests
             Assert.Equal("{\"value\":1}", await db.Releases.Where(x => x.ConfigFileId == file.Id && x.Version == file.CurrentReleaseVersion).Select(x => x.Json).SingleAsync(cancellationToken: TestContext.Current.CancellationToken));
             Assert.Empty(await db.Database.GetPendingMigrationsAsync(cancellationToken: TestContext.Current.CancellationToken));
             Assert.False(db.Database.HasPendingModelChanges());
-            Assert.Single(await db.Database.GetAppliedMigrationsAsync(cancellationToken: TestContext.Current.CancellationToken));
+            Assert.Equal(2, (await db.Database.GetAppliedMigrationsAsync(cancellationToken: TestContext.Current.CancellationToken)).Count());
             return true;
         });
     }

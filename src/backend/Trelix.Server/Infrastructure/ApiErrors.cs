@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Trelix.Server.Infrastructure;
@@ -11,13 +12,13 @@ public static class ApiErrors
     /// <param name="status">HTTP 响应状态码。</param>
     /// <param name="code">客户端可识别的业务错误码。</param>
     /// <param name="title">允许公开的错误提示。</param>
-    /// <returns>内容类型为 application/problem+json 的 MVC 结果。</returns>
-    public static ObjectResult Result(HttpContext context, int status, string code, string title)
+    /// <returns>内容类型为 application/problem+json 的 Minimal API 结果。</returns>
+    public static ProblemHttpResult Result(HttpContext context, int status, string code, string title)
     {
         var problem = new ProblemDetails { Status = status, Title = title };
         problem.Extensions["code"] = code;
         problem.Extensions["traceId"] = Activity.Current?.Id ?? context.TraceIdentifier;
-        return new ObjectResult(problem) { StatusCode = status, ContentTypes = { "application/problem+json" } };
+        return TypedResults.Problem(problem);
     }
 
     /// <summary>按状态码补充默认业务错误码及追踪标识，保留已有扩展值。</summary>

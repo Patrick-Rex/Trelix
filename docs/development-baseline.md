@@ -12,7 +12,7 @@
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |
 | .NET 依赖管理 | 集中管理 SDK、构建属性、NuGet 包版本和包源 | 根目录配置，见下文；不启用预览 SDK，不自动跨主版本升级 |
-| HTTP API | ASP.NET Core Controllers + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
+| HTTP API | ASP.NET Core Minimal APIs + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 各 Features 模块以静态 Endpoints 映射路由，使用 .NET 10 `AddValidation`；管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
 | 本地编排 | Aspire 13.5 | AppHost SDK 与 JavaScript 集成包均为 13.5.4，分别由 `global.json` 与 `Directory.Packages.props` 管理；保持 NuGet 还原编排依赖，CLI bundle 与提示处理见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) |
 | 公共运行能力 | ServiceDefaults 提供 OpenTelemetry、健康检查、服务发现与 HTTP 弹性 | 公共注册由 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 维护；避免重复注册 |
 | 前端框架 | Vue 3 + Vite + Composition API | [package.json](../src/frontend/package.json) 声明 Vue `^3.5.42`、Vite `^8.3.0`；安装版本由锁文件确定 |
@@ -20,9 +20,9 @@
 | Node 与包管理 | Node.js 24 + npm 10+ | [package.json](../src/frontend/package.json)、[.nvmrc](../src/frontend/.nvmrc)；沿用 `package-lock.json` |
 | 页面组件 | Element Plus | 已接入 Element Plus 与 `@element-plus/icons-vue`；显式导入组件、图标和所需样式，版本以 npm 清单和锁文件为准 |
 | 配置编辑器 | Monaco Editor | 尚未接入；JSON/YAML/Tree 的交互和转换规则见产品方案，实例与 worker 集成遵循前端指引 |
-| 数据存储 | SQLite + EF Core 10 | SQLite provider 与 Design 包版本由集中依赖管理；已建立逻辑模型、初始迁移和启动迁移入口；UTC 时间转换为 INTEGER ticks，文件与令牌使用应用维护的并发标记 |
+| 数据存储 | SQLite + EF Core 10 | SQLite provider 与 Design 包版本由集中依赖管理；已接入初始与配置发布迁移、启动迁移入口；UTC 时间转换为 INTEGER ticks，项目、环境、文件与令牌使用应用维护的并发标记 |
 | 管理员认证 | 单个内置管理员 + ASP.NET Core Cookie，无 RBAC | 已接入 PasswordHasher、外部首次初始化、SQLite 会话校验、防伪造及按来源 IP 的登录令牌桶限流；会话与限流规则见产品方案，界面在 M4 接入 |
-| 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入 256 位随机令牌、SHA-256 摘要、有效期、撤销、原子轮换与多范围授权基础；生产读取与长轮询入口分别随 M3、M5 接入 |
+| 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入 256 位随机令牌、SHA-256 摘要、有效期、撤销、原子轮换、多范围授权与已发布配置读取；长轮询入口随 M5 接入 |
 | .NET 测试 | xUnit v3 + Microsoft.Testing.Platform v2 | `xunit.v3.mtp-v2` 的包版本与 ASP.NET Core 测试宿主版本由集中依赖管理；`global.json` 选择原生 MTP 命令模式；集成测试使用真实 SQLite 文件 |
 | .NET 配置集成 | 自定义 IConfigurationSource / ConfigurationProvider + 后台监听，一次接入一个文件 | 启动必须拉取成功；运行中失败保留最近成功配置并退避重试；无磁盘缓存，见 [SDK 设计](architecture.md#sdk-与宿主边界) |
 | 生产交付 | Linux Docker 单容器、单个 Server 实例，前后端统一交付 | Server 提供前端静态资源与 API，SQLite 挂载持久化；详见 [生产部署](deployment.md) |
@@ -57,9 +57,9 @@ EF 命令行工具固定在 [.NET 工具清单](../.config/dotnet-tools.json)，
 - `.agents/skills` 用于开发 Trelix。根目录与分模块 `AGENTS.md` 是项目开发 agent 的入口，不是技能作者或插件维护者指引。
 - `csharp-lsp` 仅分发 Git 跟踪的 Windows x64 预编译 EXE 与技能文档，工具源码在独立工程维护；产物使用本机 .NET 10 SDK，不嵌入 Trelix 解决方案或依赖配置。支持按名称查找声明并衔接位置查询；版本、哈希和使用边界见 [技能说明](../.agents/skills/csharp-lsp/SKILL.md#工具路径)。
 - 上游 Vue 技能覆盖 TypeScript、Router、Pinia 和测试；按本项目已经确认与安装的能力使用，保持 Composition API。技能安装不表示采用对应依赖。
-- 上游 .NET Web API 技能允许 Controllers 与 Minimal APIs，本项目保持 Controllers。EF 查询优化技能只在相关查询任务中启用。
+- 上游 .NET Web API 技能允许 Controllers 与 Minimal APIs，本项目使用 Minimal APIs；字段校验使用 [ASP.NET Core 内置验证](https://learn.microsoft.com/aspnet/core/fundamentals/validation?view=aspnetcore-10.0)，防伪造中间件在认证授权、限流之后及正文绑定之前执行。EF 查询优化技能只在相关查询任务中启用。
 - 编译仅读取 error 与退出码，覆盖上游“检查零 warning”的通用要求。测试结果应照常检查失败与统计；执行前核对实际测试项目、依赖和脚本，未接入或零测试不能报告通过。
 - 上游示例中的接口、数据库类型和注册方式需匹配本项目；避免重复注册可观测性，避免为轻量业务引入没有用途的抽象层。
 - SQLite 不支持数据库生成的并发 token，DateTimeOffset 等类型的比较/排序也有 provider 限制；建模和迁移时对照 [EF Core SQLite 限制](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/limitations) 验证。
 
-开发启动与检查命令见 [本地开发](local-development.md)，验收场景和验证证据要求见 [质量与验收](quality.md)，基础工程联调见 [M1 验收记录](verification/m1.md)，存储与认证验证见 [M2 验收记录](verification/m2.md)。
+开发启动与检查命令见 [本地开发](local-development.md)，验收场景和验证证据要求见 [质量与验收](quality.md)，基础工程联调见 [M1 验收记录](verification/m1.md)，存储与认证验证见 [M2 验收记录](verification/m2.md)，配置发布与读取验证见 [M3 验收记录](verification/m3.md)。

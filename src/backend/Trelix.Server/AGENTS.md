@@ -5,7 +5,7 @@
 ## 结构与边界
 
 - 采用轻量模块化单体；按 [目标项目结构](../../../docs/architecture.md#目标项目结构) 将认证、项目环境、文件草稿、发布、应用令牌与分发放入各自 `Features` 目录。`Program.cs` 只负责宿主装配，公共构建与依赖约定继承后端公共指引。
-- 使用 Controllers 与内置 `AddOpenApi` / `MapOpenApi`，开发环境以 Scalar 展示 `admin` 与 `application` 两组文档；Scalar 和 OpenAPI JSON 仅在 Development 映射，访问方式见 [本地开发](../../../docs/local-development.md#api-文档)。管理 API 和应用 API 的路由、认证策略及契约分别维护。HTTP 错误使用 Problem Details，通用异常处理机制放 Core 的 `Middleware`，业务错误标识与映射在 Server 定义并装配，不返回原始异常或敏感配置。
+- 使用 Minimal APIs 与内置 `AddOpenApi` / `MapOpenApi`，开发环境以 Scalar 展示 `admin` 与 `application` 两组文档；Scalar 和 OpenAPI JSON 仅在 Development 映射，访问方式见 [本地开发](../../../docs/local-development.md#api-文档)。管理 API 和应用 API 的路由、认证策略及契约分别维护。HTTP 错误使用 Problem Details，通用异常处理机制放 Core 的 `Middleware`，业务错误标识与映射在 Server 定义并装配，不返回原始异常或敏感配置。
 - SQLite + EF Core 10 的 DbContext、实体映射及迁移放入 `Persistence`；认证技术实现与通知等待管理放入 `Infrastructure`。目录划分不增加部署服务或多层转发类。
 - Server 引用 Core 的通用技术能力和 ServiceDefaults 的宿主默认配置，AppHost 负责编排；业务逻辑、数据访问、认证授权与发布通知留在 Server。具体归属见 [职责边界](../../../docs/architecture.md#通用技术与业务基础设施边界)。
 
@@ -17,7 +17,7 @@
 
 ## API 与业务代码
 
-- Controller 处理 HTTP 边界，复杂业务逻辑由用例服务承担；用例服务可直接使用 DbContext 并控制事务，不再包装通用仓储。按业务能力组织代码，接口在存在替换、测试隔离或稳定契约需求时引入，不机械地为每个类复制接口；模块之间通过明确服务方法协作，不调用其他模块的 Controller。
+- 各模块的静态 Endpoints 类处理 HTTP 边界，使用路由组、TypedResults 和内置 `AddValidation`；管理写请求由中间件执行防伪造，所有 API 响应禁止缓存。复杂业务由用例服务承担，用例服务可直接使用 DbContext 并控制事务，不再包装通用仓储。接口仅在替换、测试隔离或稳定契约需要时引入；模块之间通过明确服务方法协作，不调用其他模块的端点处理器。
 - 请求/响应 DTO 与持久化实体分离；采用明确类型、正确状态码与可识别错误，新增端点同步维护 OpenAPI 元数据和 `.http` 调用样例。
 
 ## SQLite 与配置数据
@@ -47,8 +47,8 @@
 
 - 从项目根目录构建：`dotnet build .\src\backend\Trelix.Server\Trelix.Server.csproj --nologo -v:q -clp:ErrorsOnly`，只读取 error 与退出码。
 - 前后端联合验证与构建边界见 [本地开发](../../../docs/local-development.md#构建与验证)。
-- `.http` 样例覆盖管理员会话、防伪造与令牌管理入口；地址和敏感变量从外部私有环境注入，先保留匿名防伪造 Cookie，登录后重新获取请求令牌。首次初始化与迁移操作见 [本地开发](../../../docs/local-development.md#server-存储与首次初始化)。ServiceDefaults 的 `/health` 与 `/alive` 仍只在 Development 提供。
+- `.http` 样例覆盖管理员会话、防伪造、令牌、项目环境、文件草稿、发布历史、回滚与应用读取入口；地址和敏感变量从外部私有环境注入，先保留匿名防伪造 Cookie，登录后重新获取请求令牌。首次初始化与迁移操作见 [本地开发](../../../docs/local-development.md#server-存储与首次初始化)。ServiceDefaults 的 `/health` 与 `/alive` 仍只在 Development 提供。
 - API 改动验证正确与错误路径；涉及存储时验证实际 SQLite 行为，涉及契约时验证序列化与返回结构。
-- 现有 M2 自动化场景与覆盖边界见 [M2 验收记录](../../../docs/verification/m2.md)，执行入口见 [Server 自动化测试](../../../docs/local-development.md#server-自动化测试)。测试探针不替代 M3/M5 的生产读取与长轮询入口验收。
+- 自动化场景与覆盖边界见 [M2 验收记录](../../../docs/verification/m2.md) 和 [M3 验收记录](../../../docs/verification/m3.md)，执行入口见 [Server 自动化测试](../../../docs/local-development.md#server-自动化测试)。M3 使用真实管理与应用读取端点；长轮询及通知验收仍属 M5。
 - 认证改动验证登录、退出、会话失效、管理写操作防伪造校验，以及应用令牌过期、撤销、越权和管理接口隔离；读取与长轮询均覆盖。
 - 配置业务验证覆盖草稿隔离、并发冲突、发布事务与回滚生成新版本；完整场景见 [质量与验收](../../../docs/quality.md)。

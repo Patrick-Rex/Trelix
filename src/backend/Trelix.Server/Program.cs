@@ -1,5 +1,12 @@
 using Scalar.AspNetCore;
 using Trelix.Server.Infrastructure;
+using Trelix.Server.Infrastructure.Authentication;
+using Trelix.Server.Features.Authentication;
+using Trelix.Server.Features.ApplicationTokens;
+using Trelix.Server.Features.Projects;
+using Trelix.Server.Features.ConfigFiles;
+using Trelix.Server.Features.Releases;
+using Trelix.Server.Features.Distribution;
 using Trelix.Server.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,9 +24,16 @@ app.UseStatusCodePages();
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseRouting();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api"))
+        context.Response.Headers.CacheControl = "no-store";
+    await next(context);
+});
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
+app.UseMiddleware<ManagementAntiforgeryMiddleware>();
 
 app.MapDefaultEndpoints();
 app.MapStaticAssets().AllowAnonymous();
@@ -34,7 +48,15 @@ if (app.Environment.IsDevelopment())
         .DisableAgent()).AllowAnonymous();
 }
 
-app.MapControllers();
+var admin = app.MapGroup("/api/admin").WithGroupName("admin")
+    .RequireAuthorization(AuthenticationConstants.AdministratorPolicy)
+    .ProducesProblem(400).ProducesProblem(401).ProducesProblem(403).ProducesProblem(404).ProducesProblem(409);
+admin.MapAuthentication();
+admin.MapApplicationTokens();
+admin.MapProjects();
+admin.MapConfigFiles();
+admin.MapReleases();
+app.MapDistribution();
 // Unknown API routes must never resolve to the SPA document.
 app.MapFallback("/api/{**path}", () => Results.NotFound()).AllowAnonymous();
 app.MapFallbackToFile("/index.html").AllowAnonymous();

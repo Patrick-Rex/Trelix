@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Trelix.Server.Persistence;
 
@@ -10,9 +11,11 @@ using Trelix.Server.Persistence;
 namespace Trelix.Server.Persistence.Migrations
 {
     [DbContext(typeof(TrelixDbContext))]
-    partial class TrelixDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260922095541_ConfigurationPublishing")]
+    partial class ConfigurationPublishing
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");

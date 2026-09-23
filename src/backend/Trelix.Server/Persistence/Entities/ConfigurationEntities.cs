@@ -3,6 +3,8 @@ namespace Trelix.Server.Persistence.Entities;
 /// <summary>配置资源的顶层项目，使用唯一业务标识区分。</summary>
 public sealed class Project
 {
+    /// <summary>修改或删除项目时使用的并发基准。</summary>
+    public Guid ConcurrencyStamp { get; set; } = Guid.NewGuid();
     /// <summary>项目的持久化标识。</summary>
     public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>项目的唯一业务标识。</summary>
@@ -14,6 +16,8 @@ public sealed class Project
 /// <summary>项目内的配置环境，其业务标识在所属项目内唯一。</summary>
 public sealed class ProjectEnvironment
 {
+    /// <summary>修改或删除环境时使用的并发基准。</summary>
+    public Guid ConcurrencyStamp { get; set; } = Guid.NewGuid();
     /// <summary>环境的持久化标识。</summary>
     public Guid Id { get; set; } = Guid.NewGuid();
     /// <summary>环境所属项目的标识。</summary>
