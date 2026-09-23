@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 
 namespace Trelix.Server.Infrastructure.Middleware;
 
@@ -18,7 +19,14 @@ public sealed class ApiOperationExceptionHandler(IProblemDetailsService problems
         var failure = exception switch
         {
             ApiOperationException operation => operation,
+            BadHttpRequestException badRequest => new ApiOperationException(badRequest.StatusCode, "invalid_request", "请求字段缺失或格式无效。"),
             DbUpdateConcurrencyException => new ApiOperationException(409, "concurrent_change", "资源已被其他操作修改，请刷新后重试。"),
+            DbUpdateException { InnerException: SqliteException { SqliteExtendedErrorCode: 2067 or 1555 } } =>
+                new ApiOperationException(409, "duplicate_resource", "资源标识或版本已存在。"),
+            DbUpdateException { InnerException: SqliteException sqlite }
+                when sqlite.SqliteExtendedErrorCode == 787 || (sqlite.SqliteExtendedErrorCode == 1811
+                    && sqlite.Message.Contains("FOREIGN KEY constraint failed", StringComparison.Ordinal)) =>
+                new ApiOperationException(409, "resource_in_use", "资源关联已变化或仍被引用，请刷新后重试。"),
             _ => null
         };
         if (failure is null)

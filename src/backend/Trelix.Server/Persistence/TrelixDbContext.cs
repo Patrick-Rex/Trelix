@@ -52,6 +52,14 @@ public sealed class TrelixDbContext(DbContextOptions<TrelixDbContext> options) :
             if (entry.State == EntityState.Modified)
                 entry.Entity.ConcurrencyStamp = Guid.NewGuid();
 
+        foreach (var entry in ChangeTracker.Entries<Project>())
+            if (entry.State == EntityState.Modified)
+                entry.Entity.ConcurrencyStamp = Guid.NewGuid();
+
+        foreach (var entry in ChangeTracker.Entries<ProjectEnvironment>())
+            if (entry.State == EntityState.Modified)
+                entry.Entity.ConcurrencyStamp = Guid.NewGuid();
+
         foreach (var entry in ChangeTracker.Entries<ApplicationToken>())
             if (entry.State == EntityState.Modified)
                 entry.Entity.ConcurrencyStamp = Guid.NewGuid();

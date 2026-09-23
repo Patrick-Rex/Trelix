@@ -151,6 +151,10 @@ namespace Trelix.Server.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("DisplayName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -173,6 +177,10 @@ namespace Trelix.Server.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("ConcurrencyStamp")
+                        .IsConcurrencyToken()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DisplayName")
@@ -291,7 +299,7 @@ namespace Trelix.Server.Persistence.Migrations
                     b.HasOne("Trelix.Server.Persistence.Entities.Release", null)
                         .WithMany()
                         .HasForeignKey("ConfigFileId", "SourceVersion")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("Trelix.Server.Persistence.Entities.TokenScope", b =>
