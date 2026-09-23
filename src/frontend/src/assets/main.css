@@ -10,6 +10,7 @@
   --color-muted: #738079;
   --color-surface: #ffffff;
   --color-border: #e4eae6;
+  --color-danger: #b42318;
   --el-color-primary: #237454;
   --el-color-primary-light-3: #659e87;
   --el-color-primary-light-5: #91baa9;
@@ -36,6 +37,47 @@ select,
 textarea {
   font: inherit;
 }
+
+input,
+select,
+textarea {
+  min-height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--color-text);
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--el-color-primary-light-3);
+  outline: 2px solid var(--el-color-primary-light-8);
+  outline-offset: 1px;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 7px 11px;
+  color: var(--color-text);
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.button:disabled { opacity: 0.5; cursor: not-allowed; }
+.button-primary { border-color: var(--el-color-primary); color: #fff; background: var(--el-color-primary); }
+.button-secondary { border-color: var(--color-border); background: #fff; }
+.button-quiet:hover { background: #f2f5f3; }
+.button-danger { color: var(--color-danger); }
 
 a:focus-visible,
 button:focus-visible {
