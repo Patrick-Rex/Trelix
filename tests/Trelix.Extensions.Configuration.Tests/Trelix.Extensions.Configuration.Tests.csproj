@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3.mtp-v2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Aspire.Hosting.Testing" />
+    <ProjectReference Include="../../src/Trelix.AppHost/Trelix.AppHost.csproj" />
+    <ProjectReference Include="../../src/sdk/Trelix.Extensions.Configuration/Trelix.Extensions.Configuration.csproj" />
+    <ProjectReference Include="../../samples/Trelix.SampleApp/Trelix.SampleApp.csproj" />
+    <ProjectReference Include="../Trelix.Server.Tests/Trelix.Server.Tests.csproj" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+</Project>

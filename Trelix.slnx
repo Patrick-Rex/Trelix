@@ -8,9 +8,14 @@
       <Deploy />
     </Project>
     <Project Path="src/Trelix.AppHost/Trelix.AppHost.csproj" />
+    <Project Path="src/sdk/Trelix.Extensions.Configuration/Trelix.Extensions.Configuration.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Trelix.Server.Tests/Trelix.Server.Tests.csproj" />
+    <Project Path="tests/Trelix.Extensions.Configuration.Tests/Trelix.Extensions.Configuration.Tests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/Trelix.SampleApp/Trelix.SampleApp.csproj" />
   </Folder>
   <Folder Name="/_files/">
     <File Path="Directory.Build.props" />
