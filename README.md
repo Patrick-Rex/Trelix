@@ -4,7 +4,7 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 首版包含 JSON/YAML/Tree 管理工作区、内置管理员 Cookie 登录、应用只读令牌、已发布配置读取与长轮询、.NET 配置 SDK。生产采用 Linux Docker 单容器、单实例，前后端统一交付，SQLite 挂载持久化；不依赖外部 IAM 或 SSO 平台。
 
-M1 工程基础、M2 存储认证与 M3 配置发布 API 已完成，分别见 [M1](docs/verification/m1.md)、[M2](docs/verification/m2.md) 和 [M3 验收记录](docs/verification/m3.md)。Server 使用 Minimal APIs，已接入项目/环境/文件管理、草稿、发布历史、回滚、并发保护和应用授权读取，保留管理员 Cookie、防伪造与应用令牌管理；M3 的 80 项自动化测试通过。当前界面已接入登录、编辑工作区、应用令牌管理与连接配置复制，见 [前端 README](src/frontend/README.md#当前管理界面) 和 [M4 进度记录](docs/verification/m4.md)；长轮询、SDK 和生产容器按 M5、M6 交付。
+M1 工程基础、M2 存储认证与 M3 配置发布 API 已完成，分别见 [M1](docs/verification/m1.md)、[M2](docs/verification/m2.md) 和 [M3 验收记录](docs/verification/m3.md)。M5 已交付独立 .NET 10 SDK、服务端长轮询、原生 Options 热更新和可选 Aspire 示例，见 [M5 验收记录](docs/verification/m5.md)。当前界面已接入登录、编辑工作区、应用令牌管理与连接配置复制；M4 尚有浏览器专项验收未完成，见 [前端 README](src/frontend/README.md#当前管理界面) 和 [M4 进度记录](docs/verification/m4.md)。生产容器交付属于 M6。
 
 ## 首次拉取后的本机准备
 
@@ -45,6 +45,7 @@ Windows 出现证书信任确认窗口时完成系统确认，再启动 AppHost�
 | 后端性能反模式与优化验证 | [后端约束](src/backend/AGENTS.md#性能反模式约束)、[性能变更验证](docs/quality.md#性能变更验证) |
 | 阶段交付与完成条件 | [交付里程碑](docs/milestones.md)、[质量与验收](docs/quality.md) |
 | 环境准备、启动与联调 | [本地开发](docs/local-development.md) |
+| .NET 应用接入与热更新 | [SDK 说明](src/sdk/Trelix.Extensions.Configuration/README.md)、[示例应用](samples/Trelix.SampleApp/README.md) |
 | 生产交付与持久化 | [生产部署](docs/deployment.md) |
 | AI 与人的开发协作 | [开发指引](AGENTS.md)、[项目技能索引](.agents/README.md) |
 
@@ -60,9 +61,9 @@ Windows 出现证书信任确认窗口时完成系统确认，再启动 AppHost�
 | `src/backend/Trelix.Core` | 与配置中心业务无关的通用技术基础设施 | [后端公共指引](src/backend/AGENTS.md)、[职责边界](docs/architecture.md#通用技术与业务基础设施边界) |
 | `src/backend/Trelix.ServiceDefaults` | 遥测、健康检查、服务发现与 HTTP 弹性 | [ServiceDefaults 指引](src/backend/Trelix.ServiceDefaults/AGENTS.md) |
 | `src/Trelix.AppHost` | Aspire 前后端本地编排 | [AppHost 指引](src/Trelix.AppHost/AGENTS.md) |
-| `src/sdk/Trelix.Extensions.Configuration` | 最低支持 .NET 10 的业务应用配置 SDK | [SDK 设计](docs/architecture.md#sdk-与宿主边界) |
+| `src/sdk/Trelix.Extensions.Configuration` | 最低支持 .NET 10 的业务应用配置 SDK | [SDK 说明](src/sdk/Trelix.Extensions.Configuration/README.md) |
 | `tests`、`src/frontend/tests` | 服务端、SDK 与前端验证 | [质量与验收](docs/quality.md) |
-| `samples/Trelix.SampleApp` | SDK 接入与配置重载示例 | [配置集成](docs/product-plan.md#net-配置集成) |
+| `samples/Trelix.SampleApp` | SDK 接入与配置重载示例 | [示例说明](samples/Trelix.SampleApp/README.md) |
 | `deploy/docker` | Linux Docker 构建与部署资产 | [生产部署](docs/deployment.md) |
 
 解决方案与通用配置位于包含 `Trelix.slnx` 的根目录，工作范围限于此目录。管理界面与 Server 统一交付，SDK 作为独立类库供业务应用引用，不依赖 Server 的业务程序集或数据库。

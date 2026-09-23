@@ -7,9 +7,9 @@ using Trelix.Server.Persistence;
 namespace Trelix.Server.Infrastructure.Authentication;
 
 /// <summary>逐请求验证持久化管理员会话，并将认证跳转转换为 API 状态码。</summary>
-/// <param name="db">当前作用域的数据库上下文。</param>
+/// <param name="scopes">创建短数据库作用域的工厂。</param>
 /// <param name="time">用于生命周期校验的时间提供程序。</param>
-public sealed class AdministratorCookieEvents(TrelixDbContext db, TimeProvider time) : CookieAuthenticationEvents
+public sealed class AdministratorCookieEvents(IServiceScopeFactory scopes, TimeProvider time) : CookieAuthenticationEvents
 {
     /// <summary>校验会话有效期及安全戳；失效时拒绝身份并清除 Cookie。</summary>
     /// <param name="context">包含 Cookie 身份的验证上下文。</param>
@@ -17,6 +17,8 @@ public sealed class AdministratorCookieEvents(TrelixDbContext db, TimeProvider t
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         var now = time.GetUtcNow();
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TrelixDbContext>();
         if (!Guid.TryParse(context.Principal?.FindFirstValue(AuthenticationConstants.SessionClaim), out var sessionId)
             || context.Principal.FindFirstValue(ClaimTypes.NameIdentifier) != "1"
             || !await (from session in db.AdministratorSessions

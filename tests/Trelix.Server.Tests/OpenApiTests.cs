@@ -47,6 +47,9 @@ public sealed class OpenApiTests
         Assert.Contains("管理员登录凭证", login.GetProperty("description").GetString());
         var application = await client.GetFromJsonAsync<JsonElement>("/openapi/application.json", cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(application.GetProperty("paths").TryGetProperty("/api/application/configuration", out _));
+        var watch = application.GetProperty("paths").GetProperty("/api/application/configuration/watch").GetProperty("get");
+        Assert.True(watch.GetProperty("responses").TryGetProperty("204", out _));
+        Assert.True(watch.GetProperty("responses").TryGetProperty("503", out _));
         Assert.All(application.GetProperty("paths").EnumerateObject(), path => Assert.StartsWith("/api/application/", path.Name));
         Assert.All(admin.GetProperty("paths").EnumerateObject(), path => Assert.StartsWith("/api/admin/", path.Name));
         Assert.Contains(admin.GetProperty("paths").EnumerateObject(), path => path.Name.EndsWith("/rollback", StringComparison.Ordinal));

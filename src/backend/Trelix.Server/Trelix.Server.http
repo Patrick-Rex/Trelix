@@ -201,6 +201,10 @@ X-Trelix-CSRF: {{csrf}}
 GET {{baseUrl}}/api/application/configuration?projectKey={{projectKey}}&environmentKey={{environmentKey}}&fileName={{fileName}}
 Authorization: Bearer {{applicationToken}}
 
+### 应用监听：变化返回 200 和发布身份；正常等待结束未变化返回 204
+GET {{baseUrl}}/api/application/configuration/watch?projectKey={{projectKey}}&environmentKey={{environmentKey}}&fileName={{fileName}}&knownConfigFileId={{fileId}}&knownVersion={{version}}
+Authorization: Bearer {{applicationToken}}
+
 ### 原子删除文件及全部草稿和历史；之后应用读取返回 404
 DELETE {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}?concurrencyStamp={{fileStamp}}
 X-Trelix-CSRF: {{csrf}}

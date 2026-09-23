@@ -22,9 +22,9 @@
 | 配置编辑器 | Monaco Editor + `yaml` | 前端依赖 `monaco-editor` `^0.56.0` 与 `yaml` `^2.9.1`；Monaco 使用 Vite ESM worker 并延迟加载，YAML 解析按 1.2 版规则；实例生命周期与交互遵循前端指引 |
 | 数据存储 | SQLite + EF Core 10 | SQLite provider 与 Design 包版本由集中依赖管理；已接入初始与配置发布迁移、启动迁移入口；UTC 时间转换为 INTEGER ticks，项目、环境、文件与令牌使用应用维护的并发标记 |
 | 管理员认证 | 单个内置管理员 + ASP.NET Core Cookie，无 RBAC | 已接入 PasswordHasher、外部首次初始化、SQLite 会话校验、防伪造及按来源 IP 的登录令牌桶限流；管理界面按同一会话与防伪造契约接入 |
-| 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入 256 位随机令牌、SHA-256 摘要、有效期、撤销、原子轮换、多范围授权与已发布配置读取；长轮询入口随 M5 接入 |
+| 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入令牌生命周期、多范围授权、已发布配置读取与长轮询；监听返回前重新查询凭证与权限 |
 | .NET 测试 | xUnit v3 + Microsoft.Testing.Platform v2 | `xunit.v3.mtp-v2` 的包版本与 ASP.NET Core 测试宿主版本由集中依赖管理；`global.json` 选择原生 MTP 命令模式；集成测试使用真实 SQLite 文件 |
-| .NET 配置集成 | 自定义 IConfigurationSource / ConfigurationProvider + 后台监听，一次接入一个文件 | 启动必须拉取成功；运行中失败保留最近成功配置并退避重试；无磁盘缓存。管理界面已提供 `Trelix` 连接节复制，SDK 随 M5 按 [连接字段与 SDK 设计](architecture.md#sdk-与宿主边界) 接入 |
+| .NET 配置集成 | 自定义 IConfigurationSource / ConfigurationProvider + 后台监听，一次接入一个文件 | 已接入现代宿主异步入口、原生 Options 重载、失败保留及同名重建恢复，无磁盘缓存；[SDK](../src/sdk/Trelix.Extensions.Configuration/README.md) 使用独立 HTTP 连接池及固定的本地连接参数 |
 | 生产交付 | Linux Docker 单容器、单个 Server 实例，前后端统一交付 | Server 提供前端静态资源与 API，SQLite 挂载持久化；详见 [生产部署](deployment.md) |
 
 SQLite 的选型边界参考 [官方说明](https://www.sqlite.org/whentouse.html)。持久化与备份必须覆盖配置、版本、管理员及应用令牌授权信息。
@@ -51,6 +51,8 @@ SQLite 的选型边界参考 [官方说明](https://www.sqlite.org/whentouse.htm
 EF 命令行工具固定在 [.NET 工具清单](../.config/dotnet-tools.json)，与 EF Core 包使用同一版本。其迁移生成入口使用设计时 DbContext；运行数据库由 Server 在启动时迁移。测试项目继承统一构建与依赖配置，直接引用 Server，使用 WebApplicationFactory 验证 HTTP 行为，不为测试接入外部数据库服务。
 
 配置机制参考 [NuGet CPM](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management)、[MSBuild 目录配置](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory)、[global.json](https://learn.microsoft.com/en-us/dotnet/core/tools/global-json) 与 [NuGet 配置](https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file)。
+
+SDK 必要的 `Microsoft.Extensions.*` 依赖沿用 10.0.12 并集中管理；SDK 自动化项目同时通过 `Aspire.Hosting.Testing` 13.5.4 验证可选示例的真实进程编排。测试支持不进入 SDK 发布包，现有 xUnit v3 与原生 MTP 命令模式保持不变。
 
 ## 采用上游技能时的项目约束
 
