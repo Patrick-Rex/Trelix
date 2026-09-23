@@ -46,7 +46,7 @@ export default defineConfig({
     },
     server: {
         proxy: {
-            '^/(health|alive)(?:[/?]|$)': {
+            '^/(api|health|alive)(?:[/?]|$)': {
                 target,
                 secure: false
             }

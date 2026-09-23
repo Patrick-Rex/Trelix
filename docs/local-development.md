@@ -57,7 +57,7 @@ dotnet run --project .\src\Trelix.AppHost\Trelix.AppHost.csproj --launch-profile
 
 AppHost 保持通过 NuGet 还原编排依赖，显式设置 `AspireUseCliBundle=false`，不依赖 CLI bundle 提供编排组件；仅定向抑制 ASPIRE010 功能提示，依据见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md)。
 
-在 Aspire 面板打开 `trelix-client` 的 HTTPS 地址访问管理界面。Vite 端口由 Aspire 分配，代理请求访问 AppHost 注入的 Server 地址；不要同时手动启动另一套前端。检查应用壳页面、侧栏切换，并直接访问前端地址下的 `/health`、`/alive`，确认 Development 环境的健康检查代理可用。页面当前不调用业务 API，原天气示例已移除。
+在 Aspire 面板打开 `trelix-client` 的 HTTPS 地址访问管理界面。Vite 端口由 Aspire 分配，`/api`、`/health`、`/alive` 代理访问 AppHost 注入的 Server 地址；不要同时手动启动另一套前端。首次启动前完成外部管理员初始化配置，登录后通过工作区管理项目、环境、配置文件和发布；令牌入口用于创建与维护应用只读令牌。可直接访问前端同源的 `/health`、`/alive` 确认 Development 健康检查代理可用。
 
 独立前端启动使用 `DEV_SERVER_PORT` 或 `vite.config.js` 中的默认端口，后端须另行启动；具体操作见 [前端 README](../src/frontend/README.md#独立启动)。服务名、HTTPS 端点和启动顺序的实现约束见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md)。
 
