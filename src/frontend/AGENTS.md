@@ -7,7 +7,7 @@
 - 按 [目标项目结构](../../docs/architecture.md#目标项目结构) 组织 `pages`、`features`、`shared` 和测试；入口与页面负责组合，业务状态和交互留在对应功能目录。
 - 业务代码使用 TypeScript、Composition API、`<script setup lang="ts">`，页面使用 Element Plus，配置编辑使用 Monaco。
 - 已接入 TypeScript、vue-tsc、tsconfig 和 ESLint TypeScript 支持；新增业务代码纳入类型检查，构建先检查类型再打包。
-- 目标界面为 IDE 风格工作区：环境切换器、项目/文件资源树、编辑区及保存、发布、历史工具栏；保存草稿与发布是不同操作。
+- 目标界面为 IDE 风格工作区：环境切换器、项目/文件资源树、编辑区及保存、发布、历史和连接配置工具栏；保存草稿与发布是不同操作。新建名称、侧栏开关与复制行为遵循 [编辑工作区](../../docs/product-plan.md#编辑工作区)，连接字段使用 [SDK 约定](../../docs/architecture.md#sdk-与宿主边界)。
 - 首版管理界面采用单个内置管理员 + Cookie 登录，包含登录、退出、会话失效提示和应用只读令牌管理，不实现多用户或 RBAC 界面。
 - 沿用 Node.js 24、npm 与 `package-lock.json`，不另建其他包管理器的锁文件。`.esproj` 的 Visual Studio JavaScript SDK 版本在根目录 `global.json` 统一维护；根目录 C# 构建属性及 NuGet CPM 不应用于前端项目。
 

@@ -4,7 +4,7 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 首版包含 JSON/YAML/Tree 管理工作区、内置管理员 Cookie 登录、应用只读令牌、已发布配置读取与长轮询、.NET 配置 SDK。生产采用 Linux Docker 单容器、单实例，前后端统一交付，SQLite 挂载持久化；不依赖外部 IAM 或 SSO 平台。
 
-M1 工程基础、M2 存储认证与 M3 配置发布 API 已完成，分别见 [M1](docs/verification/m1.md)、[M2](docs/verification/m2.md) 和 [M3 验收记录](docs/verification/m3.md)。Server 使用 Minimal APIs，已接入项目/环境/文件管理、草稿、发布历史、回滚、并发保护和应用授权读取，保留管理员 Cookie、防伪造与应用令牌管理；80 项自动化测试通过。当前界面仍是 TypeScript + Element Plus 应用壳，登录与管理工作区在 M4 接入，见 [前端 README](src/frontend/README.md#当前应用壳)；长轮询、SDK 和生产容器按 M5、M6 交付。
+M1 工程基础、M2 存储认证与 M3 配置发布 API 已完成，分别见 [M1](docs/verification/m1.md)、[M2](docs/verification/m2.md) 和 [M3 验收记录](docs/verification/m3.md)。Server 使用 Minimal APIs，已接入项目/环境/文件管理、草稿、发布历史、回滚、并发保护和应用授权读取，保留管理员 Cookie、防伪造与应用令牌管理；M3 的 80 项自动化测试通过。当前界面已接入登录、编辑工作区、应用令牌管理与连接配置复制，见 [前端 README](src/frontend/README.md#当前管理界面) 和 [M4 进度记录](docs/verification/m4.md)；长轮询、SDK 和生产容器按 M5、M6 交付。
 
 ## 首次拉取后的本机准备
 

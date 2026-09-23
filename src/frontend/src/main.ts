@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import 'element-plus/es/components/base/style/css'
-import 'element-plus/es/components/button/style/css'
-import 'element-plus/es/components/icon/style/css'
-import 'element-plus/es/components/select/style/css'
+import 'element-plus/es/components/dialog/style/css'
+import 'element-plus/es/components/input/style/css'
+import 'element-plus/es/components/message-box/style/css'
 import './assets/main.css'
 import App from './App.vue'
 
