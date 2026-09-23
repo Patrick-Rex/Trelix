@@ -16,7 +16,7 @@
 | [vue-testing-best-practices](skills/vue-testing-best-practices/SKILL.md) | Vue 组件与浏览器测试 | 当前没有前端测试工具链；接入遵循根指引 |
 | [vue-router-best-practices](skills/vue-router-best-practices/SKILL.md) | Router 导航和路由生命周期 | 使用 Router 时读取；当前没有该依赖 |
 | [vue-pinia-best-practices](skills/vue-pinia-best-practices/SKILL.md) | Pinia store 与共享状态 | 使用 Pinia 时读取；当前没有该依赖 |
-| [dotnet-webapi](skills/dotnet-webapi/SKILL.md) | API、DTO、OpenAPI、错误处理 | 保持 Controllers 与内置 OpenAPI |
+| [dotnet-webapi](skills/dotnet-webapi/SKILL.md) | API、DTO、OpenAPI、错误处理 | 使用 Minimal APIs、内置验证与 OpenAPI |
 | [csharp-lsp](skills/csharp-lsp/SKILL.md) | 按名称查找 C# 符号，以及引用、定义、实现、调用图与字段分析 | Git 跟踪的 Windows x64 预编译 CLI，依赖本机 .NET 10 SDK；为重构提供语义影响分析 |
 | [csharp-refactoring](skills/csharp-refactoring/SKILL.md) | 保持行为的 C# 重构 | 项目边界为 `Trelix.slnx` 所在目录 |
 | [optimizing-ef-core-queries](skills/optimizing-ef-core-queries/SKILL.md) | EF 查询性能与 N+1 排查 | 需要判断项目技术基线，这个技能参考使用 |

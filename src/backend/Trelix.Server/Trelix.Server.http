@@ -6,6 +6,16 @@
 @projectId = <project-id>
 @environmentId = <environment-id>
 @expiresAt = <future-utc-time>
+@fileId = <file-id>
+@projectStamp = <project-concurrency-stamp>
+@environmentStamp = <environment-concurrency-stamp>
+@fileStamp = <file-concurrency-stamp>
+@draftRevision = <draft-revision>
+@version = <release-version>
+@projectKey = <url-encoded-project-key>
+@environmentKey = <url-encoded-environment-key>
+@fileName = <url-encoded-file-name>
+@applicationToken = <external-application-token>
 
 # 从运行环境取得实际地址；敏感变量只放在 HTTP 客户端的外部私有环境中。
 # 客户端须保存并发送响应 Cookie；登录后重新获取防伪造令牌。
@@ -88,3 +98,116 @@ POST {{baseUrl}}/api/admin/auth/logout
 
 ### Development 环境 OpenAPI
 GET {{baseUrl}}/openapi/admin.json
+
+# 以下管理操作须先登录，并在每次写入后更新对应的并发标记。
+# 创建项目和环境后，才能为它们创建应用令牌；删除示例会永久清除对应数据。
+
+### 分页查询项目
+GET {{baseUrl}}/api/admin/projects?page=1&pageSize=50
+
+### 创建项目，记录响应 id 和 concurrencyStamp
+POST {{baseUrl}}/api/admin/projects
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "key": "example-project", "displayName": "示例项目" }
+
+### 读取项目
+GET {{baseUrl}}/api/admin/projects/{{projectId}}
+
+### 重命名项目，内部 ID 和应用授权保持不变
+PUT {{baseUrl}}/api/admin/projects/{{projectId}}
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "key": "renamed-project", "displayName": "重命名项目", "concurrencyStamp": "{{projectStamp}}" }
+
+### 删除空项目；仍有环境时返回 409
+DELETE {{baseUrl}}/api/admin/projects/{{projectId}}?concurrencyStamp={{projectStamp}}
+X-Trelix-CSRF: {{csrf}}
+
+### 分页查询环境
+GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments?page=1&pageSize=50
+
+### 创建环境，记录响应 id 和 concurrencyStamp
+POST {{baseUrl}}/api/admin/projects/{{projectId}}/environments
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "key": "example-env", "displayName": "示例环境" }
+
+### 读取环境
+GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}
+
+### 重命名环境
+PUT {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "key": "renamed-env", "displayName": "重命名环境", "concurrencyStamp": "{{environmentStamp}}" }
+
+### 删除无文件且无关联授权的环境，否则返回 409
+DELETE {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}?concurrencyStamp={{environmentStamp}}
+X-Trelix-CSRF: {{csrf}}
+
+### 分页查询文件元数据
+GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files?page=1&pageSize=50
+
+### 创建空文件，初始无草稿、无发布
+POST {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "name": "app.json" }
+
+### 读取文件和草稿，记录 file.concurrencyStamp 与 file.draftRevision
+GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}
+
+### 重命名文件，保留草稿和历史
+PUT {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "name": "renamed.json", "concurrencyStamp": "{{fileStamp}}" }
+
+### 保存草稿；json 字段为 JSON 原文字符串，保存不会改变应用读取结果
+PUT {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}/draft
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "json": "{\"Feature\":{\"Enabled\":true}}", "concurrencyStamp": "{{fileStamp}}" }
+
+### 发布指定草稿修订；过期基准返回 409
+POST {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}/releases
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "draftRevision": {{draftRevision}}, "concurrencyStamp": "{{fileStamp}}" }
+
+### 分页查询发布历史元数据
+GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}/releases?page=1&pageSize=50
+
+### 查询指定历史正文；不存在的历史版本返回 404
+GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}/releases/{{version}}
+
+### 回滚生成新版本；保留当前草稿，更新 fileStamp
+POST {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}/rollback
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "sourceVersion": {{version}}, "concurrencyStamp": "{{fileStamp}}" }
+
+### 应用读取，只携带 Bearer，不使用管理 Cookie；无发布内容时返回 404
+GET {{baseUrl}}/api/application/configuration?projectKey={{projectKey}}&environmentKey={{environmentKey}}&fileName={{fileName}}
+Authorization: Bearer {{applicationToken}}
+
+### 原子删除文件及全部草稿和历史；之后应用读取返回 404
+DELETE {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}?concurrencyStamp={{fileStamp}}
+X-Trelix-CSRF: {{csrf}}
+
+### JSON 错误路径：根节点不是对象，返回 400 且不改变草稿
+PUT {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}/draft
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "json": "[]", "concurrencyStamp": "{{fileStamp}}" }

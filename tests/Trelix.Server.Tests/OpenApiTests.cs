@@ -46,7 +46,10 @@ public sealed class OpenApiTests
         var login = admin.GetProperty("components").GetProperty("schemas").GetProperty("LoginRequest");
         Assert.Contains("管理员登录凭证", login.GetProperty("description").GetString());
         var application = await client.GetFromJsonAsync<JsonElement>("/openapi/application.json", cancellationToken: TestContext.Current.CancellationToken);
-        Assert.Empty(application.GetProperty("paths").EnumerateObject());
+        Assert.True(application.GetProperty("paths").TryGetProperty("/api/application/configuration", out _));
+        Assert.All(application.GetProperty("paths").EnumerateObject(), path => Assert.StartsWith("/api/application/", path.Name));
+        Assert.All(admin.GetProperty("paths").EnumerateObject(), path => Assert.StartsWith("/api/admin/", path.Name));
+        Assert.Contains(admin.GetProperty("paths").EnumerateObject(), path => path.Name.EndsWith("/rollback", StringComparison.Ordinal));
     }
 
     /// <summary>验证非开发环境不注册 Scalar 页面、脚本及 OpenAPI JSON 端点。</summary>

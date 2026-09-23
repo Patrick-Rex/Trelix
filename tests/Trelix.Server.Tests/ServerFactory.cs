@@ -122,7 +122,7 @@ public sealed class ServerFactory(TestDataDirectory data) : WebApplicationFactor
         builder.ConfigureServices(services =>
         {
             services.Replace(ServiceDescriptor.Singleton<TimeProvider>(Clock));
-            services.AddControllers().AddApplicationPart(typeof(ApplicationProbeController).Assembly);
+            services.AddTransient<IStartupFilter, ProbeEndpoints>();
         });
     }
 

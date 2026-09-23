@@ -13,6 +13,7 @@ public sealed class ProjectMapping : IEntityTypeConfiguration<Project>
     {
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => x.Key).IsUnique();
+        builder.Property(x => x.ConcurrencyStamp).IsConcurrencyToken();
         builder.Property(x => x.Key).HasMaxLength(128);
         builder.Property(x => x.DisplayName).HasMaxLength(200);
     }
@@ -27,6 +28,7 @@ public sealed class EnvironmentMapping : IEntityTypeConfiguration<ProjectEnviron
     {
         builder.HasKey(x => x.Id);
         builder.HasIndex(x => new { x.ProjectId, x.Key }).IsUnique();
+        builder.Property(x => x.ConcurrencyStamp).IsConcurrencyToken();
         builder.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
         builder.Property(x => x.Key).HasMaxLength(128);
         builder.Property(x => x.DisplayName).HasMaxLength(200);
@@ -65,7 +67,7 @@ public sealed class ReleaseMapping : IEntityTypeConfiguration<Release>
         builder.HasKey(x => new { x.ConfigFileId, x.Version });
         builder.HasOne<ConfigFile>().WithMany().HasForeignKey(x => x.ConfigFileId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne<Release>().WithMany().HasForeignKey(x => new { x.ConfigFileId, x.SourceVersion })
-            .HasPrincipalKey(x => new { x.ConfigFileId, x.Version }).OnDelete(DeleteBehavior.Restrict);
+            .HasPrincipalKey(x => new { x.ConfigFileId, x.Version }).OnDelete(DeleteBehavior.NoAction);
         builder.HasIndex(x => x.PublishedAt);
         builder.ToTable(table =>
         {

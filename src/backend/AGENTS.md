@@ -48,7 +48,7 @@
 
 - [.NET 官方 analyzing-dotnet-performance](https://github.com/dotnet/skills/blob/main/plugins/dotnet-diag/skills/analyzing-dotnet-performance/SKILL.md) 及其 [模式参考](https://github.com/dotnet/skills/tree/main/plugins/dotnet-diag/skills/analyzing-dotnet-performance/references)：采用按热点、分配和正确性分级检查的方法；不照搬固定收益倍数、按出现次数升级严重性或全面替换 API 的建议。
 - [microsoft/mcp copilot-instructions.md](https://github.com/microsoft/mcp/blob/main/.github/copilot-instructions.md)：借鉴 `System.Text.Json`、适用的静态成员、工厂管理 HTTP 客户端与变更自检；其强制 AOT、Azure SDK 重试默认值、专用脚本与测试平台不是 Trelix 的工程约定。
-- [ASP.NET Core 性能实践](https://learn.microsoft.com/aspnet/core/fundamentals/best-practices?view=aspnetcore-10.0)、[EF Core 高效查询](https://learn.microsoft.com/ef/core/performance/efficient-querying) 与 [JsonSerializerOptions 复用](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/configure-options)：结合本项目 .NET 10、SQLite、Controllers 和现有 ServiceDefaults 使用。
+- [ASP.NET Core 性能实践](https://learn.microsoft.com/aspnet/core/fundamentals/best-practices?view=aspnetcore-10.0)、[EF Core 高效查询](https://learn.microsoft.com/ef/core/performance/efficient-querying) 与 [JsonSerializerOptions 复用](https://learn.microsoft.com/dotnet/standard/serialization/system-text-json/configure-options)：结合本项目 .NET 10、SQLite、Minimal APIs 和现有 ServiceDefaults 使用。
 - [.NET 高性能日志](https://learn.microsoft.com/dotnet/core/extensions/logging/high-performance-logging) 与 [正则表达式实践](https://learn.microsoft.com/dotnet/standard/base-types/best-practices-regex)：用于核对日志源生成、正则引擎选择及输入边界。
 
 ## 技能与模块入口
