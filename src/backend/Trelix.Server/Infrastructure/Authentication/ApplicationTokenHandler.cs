@@ -12,13 +12,13 @@ namespace Trelix.Server.Infrastructure.Authentication;
 /// <param name="options">应用令牌认证方案的配置监视器。</param>
 /// <param name="logger">诊断日志服务。</param>
 /// <param name="encoder">认证处理器使用的 URL 编码器。</param>
-/// <param name="db">当前作用域的数据库上下文。</param>
+/// <param name="scopes">创建短数据库作用域的工厂。</param>
 /// <param name="time">用于生命周期校验的时间提供程序。</param>
 public sealed class ApplicationTokenHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
     UrlEncoder encoder,
-    TrelixDbContext db,
+    IServiceScopeFactory scopes,
     TimeProvider time) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     /// <summary>验证请求头格式及令牌生命周期，建立仅含令牌标识的身份。</summary>
@@ -34,6 +34,8 @@ public sealed class ApplicationTokenHandler(
 
         var hash = ApplicationTokenSecret.Hash(secret);
         var now = time.GetUtcNow();
+        await using var scope = scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<TrelixDbContext>();
         var id = await db.ApplicationTokens.Where(x => x.SecretHash == hash && x.RevokedAt == null && x.ExpiresAt > now)
             .Select(x => (Guid?)x.Id).SingleOrDefaultAsync(Context.RequestAborted);
         if (id is null)

@@ -5,6 +5,7 @@ using Trelix.Server.Features.ApplicationTokens;
 using Trelix.Server.Features.ConfigFiles;
 using Trelix.Server.Features.Projects;
 using Trelix.Server.Features.Releases;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Trelix.Server.Tests;
 
@@ -22,17 +23,19 @@ public sealed class ConfigurationApiFixture : IAsyncDisposable
     public string ReadPath => $"/api/application/configuration?projectKey={Uri.EscapeDataString(Project.Key)}&environmentKey={Uri.EscapeDataString(Environment.Key)}&fileName={Uri.EscapeDataString(File.Name)}";
 
     /// <summary>创建测试宿主及保存 Cookie 的管理客户端。</summary>
-    private ConfigurationApiFixture()
+    /// <param name="configure">可选测试服务配置。</param>
+    private ConfigurationApiFixture(Action<IServiceCollection>? configure)
     {
-        App = new ServerFactory(data);
+        App = new ServerFactory(data) { ConfigureTestServices = configure };
         Admin = App.NewClient();
     }
 
     /// <summary>登录并通过 HTTP 创建项目、环境和空文件。</summary>
     /// <returns>拥有完整资源路径的测试夹具。</returns>
-    public static async Task<ConfigurationApiFixture> CreateAsync()
+    /// <param name="configure">可选测试服务配置。</param>
+    public static async Task<ConfigurationApiFixture> CreateAsync(Action<IServiceCollection>? configure = null)
     {
-        var fixture = new ConfigurationApiFixture();
+        var fixture = new ConfigurationApiFixture(configure);
         try
         {
             await fixture.App.LoginAsync(fixture.Admin);

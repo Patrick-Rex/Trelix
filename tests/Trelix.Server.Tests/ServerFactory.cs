@@ -105,6 +105,8 @@ public sealed class ServerFactory(TestDataDirectory data) : WebApplicationFactor
     public string EnvironmentName { get; init; } = "Development";
     public TestClock Clock { get; } = new();
     public CapturedLogs Logs { get; } = new();
+    /// <summary>在默认测试服务之后应用额外的故障注入或监听设置。</summary>
+    public Action<IServiceCollection>? ConfigureTestServices { get; init; }
 
     /// <summary>注入测试存储、凭证和时钟，捕获日志并注册仅供测试的探针。</summary>
     /// <param name="builder">待配置的宿主构建器。</param>
@@ -123,6 +125,7 @@ public sealed class ServerFactory(TestDataDirectory data) : WebApplicationFactor
         {
             services.Replace(ServiceDescriptor.Singleton<TimeProvider>(Clock));
             services.AddTransient<IStartupFilter, ProbeEndpoints>();
+            ConfigureTestServices?.Invoke(services);
         });
     }
 

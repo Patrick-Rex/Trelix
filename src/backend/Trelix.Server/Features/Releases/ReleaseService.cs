@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Trelix.Server.Features.ConfigFiles;
 using Trelix.Server.Features.Projects;
 using Trelix.Server.Infrastructure;
+using Trelix.Server.Infrastructure.Notifications;
 using Trelix.Server.Persistence;
 using Trelix.Server.Persistence.Entities;
 
@@ -11,7 +12,10 @@ namespace Trelix.Server.Features.Releases;
 /// <param name="db">当前请求数据库上下文。</param>
 /// <param name="files">文件层级校验服务。</param>
 /// <param name="time">UTC 时间来源。</param>
-public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, TimeProvider time)
+/// <param name="notifications">提交后的发布唤醒服务。</param>
+/// <param name="logger">不包含正文的通知故障诊断。</param>
+public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, TimeProvider time,
+    IReleaseNotifications notifications, ILogger<ReleaseService> logger)
 {
     /// <summary>分页查询指定文件的历史元数据，不加载历史正文。</summary>
     /// <param name="projectId">项目标识。</param>
@@ -108,6 +112,15 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
         file.CurrentReleaseVersion = release.Version;
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
+        try
+        {
+            notifications.Notify(file.Id);
+        }
+        catch (Exception)
+        {
+            // 发布已经提交，不能以通知故障把成功写入伪装成失败，也不记录异常正文。
+            logger.LogWarning("发布已经提交，但监听唤醒失败；客户端将在下次持久化核对时发现更新。");
+        }
         return new(ConfigFileService.ToResponse(file),
             new ReleaseResponse(file.Id, release.Version, revision, sourceVersion, release.PublishedAt));
     }

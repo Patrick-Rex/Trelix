@@ -2,7 +2,7 @@
 
 `src/frontend` 是 Web 管理界面的工程根目录，负责单管理员登录、项目与环境选择、JSON/YAML/Tree 编辑、草稿保存、发布、历史回滚及应用令牌管理。业务实现采用 Vue 3、Vite、TypeScript、Element Plus 和 Monaco，按 [目标项目结构](../../docs/architecture.md#目标项目结构) 分为页面、功能模块和共享能力。
 
-项目文件为 `trelix.client.esproj`，npm 包名为 `trelix.client`。业务应用使用的 .NET SDK 计划在 M5 以独立的 `src/sdk/Trelix.Extensions.Configuration` 项目交付，与本目录职责分开。
+项目文件为 `trelix.client.esproj`，npm 包名为 `trelix.client`。业务应用使用的 [.NET SDK](../sdk/Trelix.Extensions.Configuration/README.md) 位于独立项目，与本目录职责分开。
 
 跨前后端的环境准备、统一启动和联调见 [本地开发](../../docs/local-development.md)。产品规则见 [产品方案](../../docs/product-plan.md)，技术选择见 [技术基线](../../docs/development-baseline.md)，前端实现约束见 [前端指引](AGENTS.md)，行为验收见 [AC-07](../../docs/quality.md#ac-07-编辑工作区)。完整入口见 [文档索引](../../docs/README.md)。
 
@@ -14,7 +14,7 @@
 
 项目标题旁集中放置项目新增、重命名和删除操作；环境标题旁集中放置环境的对应操作。`WORKSPACE` 小标题独立成行，项目标题与操作按钮垂直居中，项目与环境操作区的右边缘对齐。按钮有操作名称提示，重命名和删除针对当前选中资源，加载期间禁用操作；删除入口沿用空资源限制。新建资源的名称字段留空，重命名预填原值。主导航通过底部独立工具区的图标按钮收起或展开，页面滚动时保持可见；窄屏收起后保留图标栏和底部展开入口。
 
-选中文件后，工具栏的“复制连接配置”直接复制 `appsettings.json` 的 `Trelix` 节并打开预览。服务地址默认使用当前站点地址，开发或跨主机接入时可改为业务应用可访问的地址后再次复制。应用令牌为占位符，真实值通过 User Secrets 或 `Trelix__AccessToken` 等外部配置注入；复制失败时可从预览手动复制，未发布文件提示先发布。字段约定见 [SDK 与宿主边界](../../docs/architecture.md#sdk-与宿主边界)，SDK 接入随 M5 交付。
+选中文件后，工具栏的“复制连接配置”直接复制 `appsettings.json` 的 `Trelix` 节并打开预览。服务地址默认使用当前站点地址，开发或跨主机接入时可改为业务应用可访问的地址后再次复制。应用令牌为占位符，真实值通过 User Secrets 或 `Trelix__AccessToken` 等外部配置注入；复制失败时可从预览手动复制，未发布文件提示先发布。字段约定见 [SDK 与宿主边界](../../docs/architecture.md#sdk-与宿主边界)，接入方式及示例见 [本地开发](../../docs/local-development.md#net-sdk-与示例应用)。
 
 `App.vue` 负责会话入口和页面切换；`pages/WorkspacePage.vue` 与 `features/workspace/composables/useWorkspace.ts` 组合资源与文档状态。Monaco、JSON/YAML/Tree 编辑器、历史面板和令牌页按功能拆分。管理请求由 `shared/api` 发送同源 Cookie 与防伪造令牌。未引入 Router 或 Pinia。
 

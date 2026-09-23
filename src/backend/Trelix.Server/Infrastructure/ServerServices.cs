@@ -16,6 +16,7 @@ using Trelix.Server.Features.Releases;
 using Trelix.Server.Features.Distribution;
 using Trelix.Server.Infrastructure.Authentication;
 using Trelix.Server.Infrastructure.Middleware;
+using Trelix.Server.Infrastructure.Notifications;
 using Trelix.Server.Persistence;
 using Trelix.Server.Persistence.Entities;
 
@@ -42,6 +43,12 @@ public static class ServerServices
         services.AddScoped<ConfigFileService>();
         services.AddScoped<ReleaseService>();
         services.AddScoped<DistributionService>();
+        services.AddOptions<DistributionOptions>().BindConfiguration("Trelix:Distribution")
+            .Validate(x => x.MaxConcurrentListeners > 0 && x.WaitTimeout > TimeSpan.Zero && x.WaitTimeout <= TimeSpan.FromMinutes(5),
+                "监听容量必须为正数，等待时间必须大于零且不超过五分钟。")
+            .ValidateOnStart();
+        services.AddSingleton<ReleaseNotifications>();
+        services.AddSingleton<IReleaseNotifications>(provider => provider.GetRequiredService<ReleaseNotifications>());
         services.AddScoped<AdministratorCookieEvents>();
         services.AddScoped<IAuthorizationHandler, ApplicationScopeHandler>();
         services.AddHttpContextAccessor();

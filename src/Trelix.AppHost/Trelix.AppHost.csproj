@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\backend\Trelix.Server\Trelix.Server.csproj" />
+    <ProjectReference Include="..\..\samples\Trelix.SampleApp\Trelix.SampleApp.csproj" />
   </ItemGroup>
 
 </Project>
