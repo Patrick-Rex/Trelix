@@ -39,16 +39,22 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
         return new(ToResponse(file), file.DraftJson);
     }
 
-    /// <summary>在指定环境创建没有草稿与发布历史的文件。</summary>
+    /// <summary>在指定环境原子创建文件及可选初始草稿，不创建发布历史。</summary>
     /// <param name="projectId">项目标识。</param>
     /// <param name="environmentId">环境标识。</param>
-    /// <param name="request">新文件名。</param>
+    /// <param name="request">新文件名及可选初始 JSON 草稿。</param>
     /// <param name="ct">取消令牌。</param>
     /// <returns>新文件元数据。</returns>
     public async Task<ConfigFileResponse> CreateAsync(Guid projectId, Guid environmentId, CreateConfigFileRequest request, CancellationToken ct)
     {
         await projects.GetEnvironmentAsync(projectId, environmentId, ct);
-        var file = new ConfigFile { EnvironmentId = environmentId, Name = request.Name };
+        if (request.Json is not null)
+            ConfigJson.Validate(request.Json);
+        var file = new ConfigFile
+        {
+            EnvironmentId = environmentId, Name = request.Name,
+            DraftJson = request.Json, DraftRevision = request.Json is null ? 0 : 1
+        };
         db.ConfigFiles.Add(file);
         await db.SaveChangesAsync(ct);
         return ToResponse(file);

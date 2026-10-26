@@ -19,7 +19,7 @@
 | 前端语言 | TypeScript 与 `<script setup lang="ts">` | 已接入 TypeScript 5.9、vue-tsc、tsconfig 与 ESLint TypeScript 支持；`npm run build` 先检查类型再打包，版本由 npm 清单和锁文件管理 |
 | Node 与包管理 | Node.js 24 + npm 10+ | [package.json](../src/frontend/package.json)、[.nvmrc](../src/frontend/.nvmrc)；沿用 `package-lock.json` |
 | 页面组件 | Element Plus | 已接入 Element Plus 与 `@element-plus/icons-vue`；显式导入组件、图标和所需样式，版本以 npm 清单和锁文件为准 |
-| 配置编辑器 | Monaco Editor + `yaml` | 前端依赖 `monaco-editor` `^0.56.0` 与 `yaml` `^2.9.1`；Monaco 使用 Vite ESM worker 并延迟加载，YAML 解析按 1.2 版规则；实例生命周期与交互遵循前端指引 |
+| 配置编辑器 | Monaco Editor + `yaml` | 前端依赖 `monaco-editor` `^0.56.0` 与 `yaml` `^2.9.1`；Monaco 使用 Vite ESM worker 并延迟加载，YAML 解析按 1.2 版规则；单文件导入导出复用现有校验和浏览器文件 API，跨环境复制复用文件创建 API 的可选初始 JSON 草稿，无新增依赖或数据库迁移；实例生命周期与交互遵循前端指引 |
 | 数据存储 | SQLite + EF Core 10 | SQLite provider 与 Design 包版本由集中依赖管理；已接入初始与配置发布迁移、启动迁移入口；UTC 时间转换为 INTEGER ticks，项目、环境、文件与令牌使用应用维护的并发标记 |
 | 管理员认证 | 单个内置管理员 + ASP.NET Core Cookie，无 RBAC | 已接入 PasswordHasher、外部首次初始化、SQLite 会话校验、防伪造及按来源 IP 的登录令牌桶限流；管理界面按同一会话与防伪造契约接入 |
 | 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入令牌生命周期、多范围授权、已发布配置读取与长轮询；监听返回前重新查询凭证与权限 |

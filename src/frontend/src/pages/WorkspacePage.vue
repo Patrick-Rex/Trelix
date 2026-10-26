@@ -2,10 +2,14 @@
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
 import EditorPanel from '@/features/workspace/components/EditorPanel.vue'
 import ConnectionConfigButton from '@/features/workspace/components/ConnectionConfigButton.vue'
+import ConfigImportDialog from '@/features/workspace/components/ConfigImportDialog.vue'
+import ConfigExportDialog from '@/features/workspace/components/ConfigExportDialog.vue'
+import ConfigCopyDialog from '@/features/workspace/components/ConfigCopyDialog.vue'
 import HistoryDialog from '@/features/workspace/components/HistoryDialog.vue'
 import ResourceDialog from '@/features/workspace/components/ResourceDialog.vue'
 import WorkspaceResourceTree from '@/features/workspace/components/WorkspaceResourceTree.vue'
 import { useWorkspace } from '@/features/workspace/composables/useWorkspace'
+import { useConfigurationTransfer } from '@/features/workspace/composables/useConfigurationTransfer'
 import type { ReleaseDetail } from '@/shared/api/contracts'
 import type { DocumentFormat } from '@/features/workspace/utils/configDocument'
 
@@ -15,6 +19,7 @@ type ResourceKind = 'project' | 'environment' | 'file'
 type ResourceMode = 'create' | 'rename'
 
 const workspace = useWorkspace()
+const transfer = useConfigurationTransfer(workspace)
 const emit = defineEmits<{ dirtyChange: [hasChanges: boolean] }>()
 const activeResourceDialog = shallowRef<{ kind: ResourceKind; mode: ResourceMode } | null>(null)
 const resourceSaving = shallowRef(false)
@@ -214,6 +219,11 @@ function changeFormat(format: DocumentFormat): void {
         @delete-file="workspace.removeFile"
         @reload="workspace.reloadCurrentDraft"
       >
+        <template #transfer-actions>
+          <button class="button button-secondary" type="button" :disabled="transfer.disabled.value" @click="transfer.open('import')">导入</button>
+          <button class="button button-secondary" type="button" :disabled="transfer.disabled.value" @click="transfer.open('export')">导出</button>
+          <button class="button button-secondary" type="button" :disabled="transfer.disabled.value" @click="transfer.open('copy')">跨环境复制</button>
+        </template>
         <template #connection-action>
           <ConnectionConfigButton
             :project-key="workspace.currentProject.value?.key"
@@ -224,8 +234,23 @@ function changeFormat(format: DocumentFormat): void {
           />
         </template>
       </EditorPanel>
+      <p v-if="transfer.message.value" class="transfer-status" role="status">{{ transfer.message.value }}</p>
     </div>
 
+    <ConfigImportDialog
+      v-model:open="transfer.importOpen.value" :applying="transfer.busy.value" :error="transfer.error.value"
+      @import="transfer.importConfiguration"
+    />
+    <ConfigExportDialog
+      v-model:open="transfer.exportOpen.value" :busy="transfer.busy.value" :error="transfer.error.value"
+      :published="workspace.currentFile.value?.currentReleaseVersion != null" @export="transfer.exportConfiguration"
+    />
+    <ConfigCopyDialog
+      v-model:open="transfer.copyOpen.value" :busy="transfer.busy.value" :error="transfer.error.value"
+      :environments="workspace.environments.value" :current-environment-id="workspace.selectedEnvironmentId.value"
+      :file-name="workspace.currentFile.value?.name ?? ''" :published="workspace.currentFile.value?.currentReleaseVersion != null"
+      @copy="transfer.copyConfiguration"
+    />
     <ResourceDialog
       :open="resourceDialogOpen"
       :kind="activeResourceDialog?.kind ?? 'project'"
@@ -255,6 +280,7 @@ function changeFormat(format: DocumentFormat): void {
 .workspace-main { display: flex; min-width: 0; min-height: 0; flex-direction: column; padding: 0 16px 16px; }
 .workspace-context { display: flex; min-height: 42px; align-items: center; gap: 9px; overflow: hidden; color: var(--color-muted); white-space: nowrap; font-size: 10px; }
 .workspace-context strong { overflow: hidden; color: var(--color-text); text-overflow: ellipsis; font-weight: 600; }
+.transfer-status { margin: 10px 0 0; color: var(--el-color-primary); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
 
 @media (max-width: 900px) {
   .workspace-page { grid-template-columns: minmax(0, 1fr); }

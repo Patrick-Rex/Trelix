@@ -5,6 +5,7 @@ import { confirmAction } from '@/shared/components/confirmAction'
 import * as api from '@/shared/api/workspace'
 import { canonicalJson, parseConfigDocument, stringifyConfigDocument, validateJsonObject } from '../utils/configDocument'
 import type { DocumentFormat } from '../utils/configDocument'
+import type { ConfigurationSource, ImportedConfiguration } from '../utils/configTransfer'
 
 const initialJson = '{\n}'
 
@@ -314,6 +315,56 @@ export function useWorkspace() {
   function updateTreeValidation(message: string | null): void {
     treeInputError.value = message
     if (documentFormat.value === 'tree') validationError.value = message ?? validateJsonObject(documentValue.value).error ?? null
+  }
+
+  /**
+   * 校验并载入本地文件，确认替换未保存编辑后仅更新文档缓冲区。
+   * @param configuration 已读取的候选 JSON/YAML 文件。
+   * @returns 成功载入时为 true；取消或当前文件变化时为 false。
+   */
+  async function importDocument(configuration: ImportedConfiguration): Promise<boolean> {
+    if (!currentFile.value || loadingFile.value || saving.value || publishing.value) return false
+    const parsed = parseConfigDocument(configuration.text, configuration.format)
+    if (!parsed.value) throw new Error(parsed.error ?? '导入配置无效。')
+    const generation = fileRequestId
+    const previousText = documentText.value
+    if (isDirty.value && !(await confirmAction('导入会替换当前未保存的编辑内容，确定载入所选文件吗？'))) return false
+    if (generation !== fileRequestId || previousText !== documentText.value) return false
+    clearTimeout(parseTimer)
+    documentFormat.value = configuration.format
+    codeFormat.value = configuration.format
+    documentText.value = configuration.text
+    documentValue.value = parsed.value
+    savedViewText.value = savedValue.value ? stringifyConfigDocument(savedValue.value, configuration.format) : initialJson
+    treeInputError.value = null
+    validationError.value = null
+    validationPending.value = false
+    return true
+  }
+
+  /**
+   * 获取明确选定的当前编辑或最新观察到的发布快照，不保存源文件。
+   * @param source 配置内容来源。
+   * @param signal 取消发布快照读取的信号。
+   * @returns 可用于导出和复制的有效 JSON 正文。
+   * @throws {Error} 没有文件、输入无效、尚未发布或读取期间切换文件时拒绝操作。
+   */
+  async function readConfigurationJson(source: ConfigurationSource, signal?: AbortSignal): Promise<string> {
+    const file = currentFile.value
+    const projectId = selectedProjectId.value
+    const environmentId = selectedEnvironmentId.value
+    if (!file || !projectId || !environmentId || loadingFile.value) throw new Error('请先选择并载入配置文件。')
+    if (source === 'editing') {
+      const value = validateDocument()
+      if (!value) throw new Error(validationError.value ?? '请先修正当前编辑内容。')
+      return documentFormat.value === 'json' ? documentText.value : JSON.stringify(value, null, 2)
+    }
+    const generation = fileRequestId
+    const latest = await api.getDraft(projectId, environmentId, file.id, signal)
+    if (latest.file.currentReleaseVersion === null) throw new Error('此文件尚未发布，请选择当前编辑内容。')
+    const release = await api.getRelease(projectId, environmentId, file.id, latest.file.currentReleaseVersion, signal)
+    if (generation !== fileRequestId || signal?.aborted) throw new Error('当前文件已变化，请重新选择内容来源。')
+    return release.json
   }
 
   /**
@@ -669,7 +720,7 @@ export function useWorkspace() {
     loadingFile: readonly(loadingFile), saving: readonly(saving), publishing: readonly(publishing),
     canPublish, errorMessage: readonly(errorMessage), conflictDetected: readonly(conflictDetected),
     loadProjects, selectProject, selectEnvironment, selectFile, updateDocumentText, changeFormat,
-    updateTreeValue, updateTreeValidation, validateDocument, save, publish, readRelease, rollbackTo, addProject,
+    updateTreeValue, updateTreeValidation, importDocument, readConfigurationJson, validateDocument, save, publish, readRelease, rollbackTo, addProject,
     updateProject, removeProject, addEnvironment, updateEnvironment, removeEnvironment, addFile,
     updateFileName, removeFile, reloadCurrentDraft, confirmDiscardIfNeeded,
   }

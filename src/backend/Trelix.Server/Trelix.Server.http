@@ -160,6 +160,13 @@ X-Trelix-CSRF: {{csrf}}
 
 { "name": "app.json" }
 
+### 创建新文件及初始草稿；同名返回 409，不自动发布
+POST {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files
+Content-Type: application/json
+X-Trelix-CSRF: {{csrf}}
+
+{ "name": "copied.json", "json": "{\"Feature\":{\"Enabled\":true}}" }
+
 ### 读取文件和草稿，记录 file.concurrencyStamp 与 file.draftRevision
 GET {{baseUrl}}/api/admin/projects/{{projectId}}/environments/{{environmentId}}/files/{{fileId}}
 

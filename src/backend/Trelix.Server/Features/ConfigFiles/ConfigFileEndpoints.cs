@@ -14,7 +14,7 @@ public static class ConfigFileEndpoints
         var group = admin.MapGroup("/projects/{projectId:guid}/environments/{environmentId:guid}/files").WithTags("ConfigFiles");
         group.MapGet("/", List).WithSummary("分页读取文件元数据。");
         group.MapGet("/{fileId:guid}", Get).WithSummary("读取文件和草稿。");
-        group.MapPost("/", Create).WithSummary("创建空配置文件。");
+        group.MapPost("/", Create).WithSummary("创建文件及可选初始草稿，不自动发布。");
         group.MapPut("/{fileId:guid}", Rename).WithSummary("重命名配置文件。");
         group.MapPut("/{fileId:guid}/draft", SaveDraft).WithSummary("保存草稿并递增修订，不影响已发布内容。");
         group.MapDelete("/{fileId:guid}", Delete).WithSummary("原子删除文件及全部草稿和历史。");
@@ -45,10 +45,10 @@ public static class ConfigFileEndpoints
         return TypedResults.Ok(await service.GetAsync(projectId, environmentId, fileId, ct));
     }
 
-    /// <summary>创建空配置文件。</summary>
+    /// <summary>原子创建文件及可选初始草稿。</summary>
     /// <param name="projectId">项目标识。</param>
     /// <param name="environmentId">环境标识。</param>
-    /// <param name="request">文件名。</param>
+    /// <param name="request">文件名及可选初始 JSON 草稿。</param>
     /// <param name="service">文件服务。</param>
     /// <param name="ct">请求取消令牌。</param>
     /// <returns>操作结果；失败由统一错误处理器转换为 Problem Details。</returns>

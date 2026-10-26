@@ -2,12 +2,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Trelix.Server.Features.ConfigFiles;
 
-/// <summary>创建空配置文件，之后独立保存草稿。</summary>
+/// <summary>创建配置文件，可在同一次写入中保存初始草稿。</summary>
 public sealed record CreateConfigFileRequest
 {
     /// <summary>环境内唯一且区分大小写的文件名。</summary>
     [Required, MaxLength(256)]
     public required string Name { get; init; }
+    /// <summary>可选的初始 JSON 草稿；未提供或为 null 时创建没有草稿的文件，不自动发布。</summary>
+    public string? Json { get; init; }
 }
 
 /// <summary>重命名文件，保持文件身份、草稿及历史不变。</summary>

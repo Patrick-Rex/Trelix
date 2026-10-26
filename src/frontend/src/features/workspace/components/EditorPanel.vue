@@ -54,6 +54,7 @@ const editorLanguage = computed(() => props.format === 'yaml' ? 'yaml' : 'json')
         </span>
       </div>
       <div class="toolbar-actions">
+        <slot name="transfer-actions" />
         <slot name="connection-action" />
         <button class="button button-secondary" type="button" :disabled="!props.file || props.loadingFile" @click="emit('showHistory')">发布历史</button>
         <button class="button button-secondary" type="button" :disabled="!props.file || props.loadingFile" @click="emit('renameFile')">重命名</button>
@@ -71,7 +72,7 @@ const editorLanguage = computed(() => props.format === 'yaml' ? 'yaml' : 'json')
       <button v-for="format in (['json', 'yaml', 'tree'] as const)" :key="format" class="format-tab" :class="{ active: props.format === format }" type="button" role="tab" :aria-selected="props.format === format" :disabled="props.loadingFile" @click="emit('changeFormat', format)">
         {{ format === 'json' ? 'JSON' : format === 'yaml' ? 'YAML' : 'Tree' }}
       </button>
-      <span class="format-hint">同一份配置数据</span>
+      <span class="format-hint">配置模式切换</span>
     </div>
 
     <div v-if="props.errorMessage" class="editor-alert" role="alert">

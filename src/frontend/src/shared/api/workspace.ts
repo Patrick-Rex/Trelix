@@ -101,15 +101,16 @@ export async function listFiles(projectId: string, environmentId: string, signal
 }
 
 /**
- * 创建空配置文件。
+ * 原子创建配置文件及可选初始草稿，不发布内容。
  * @param projectId 项目的内部标识。
  * @param environmentId 环境的内部标识。
  * @param name 待使用的资源名称。
+ * @param json 可选初始 JSON 草稿，省略时创建空文件。
  * @returns 管理 API 返回的操作结果。
  */
-export function createFile(projectId: string, environmentId: string, name: string): Promise<ConfigFile> {
+export function createFile(projectId: string, environmentId: string, name: string, json?: string): Promise<ConfigFile> {
   return request(`/api/admin/projects/${projectId}/environments/${environmentId}/files`, {
-    method: 'POST', body: jsonBody({ name }),
+    method: 'POST', body: jsonBody({ name, json }),
   })
 }
 

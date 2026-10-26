@@ -26,7 +26,7 @@
 - 查询先在数据库侧过滤、投影、排序并限制结果，避免先 `ToList` / `AsEnumerable` 再筛选分页、循环逐条查询和无界结果集；分页排序应稳定。只读实体查询按需使用 `AsNoTracking`，纯标量或 DTO 投影不机械追加；需要保存的实体保持必要跟踪。索引、`Include`、拆分查询及 EF 编译查询须依据实际 SQL、查询计划和数据规模选择，不把 `IQueryable` 的 LINQ 改成内存循环。
 - SQLite 写事务尽量短，不跨外部 HTTP、客户端等待或长轮询；不得通过并行写入、无界重试或扩大连接池掩盖锁争用。注意 [Microsoft.Data.Sqlite 的异步限制](https://learn.microsoft.com/dotnet/standard/data/sqlite/async)：其异步 ADO.NET 方法实际同步执行，不能仅凭 `Async` 后缀宣称消除了阻塞，也不用 `Task.Run` 包装查询；验证实际数据库行为、SQL 次数与事务边界后再报告性能收益。
 - SQLite 的并发写入和类型操作有限制；时间、版本字段的持久化映射与索引应可在真实 SQLite 上排序和比较，不能从 API 的 DateTimeOffset 类型直接推断存储方案。
-- 配置按 Project → Env → ConfigFile 组织，正文统一保存 JSON；JSON/YAML/Tree 视图转换由管理界面承担，服务端只接收并校验 JSON。
+- 配置按 Project → Env → ConfigFile 组织，正文统一保存 JSON；JSON/YAML/Tree 视图转换由管理界面承担，服务端只接收并校验 JSON。文件创建接受可选初始 JSON 草稿并在同一次写入中保存文件及草稿，不自动发布；同名冲突不能覆盖现有文件。
 - 保存仅更新草稿，应用仅读取已发布版本；回滚生成新发布版本。遵循产品方案中的版本和事务规则，保存、发布、回滚均实施并发保护，不能最后写入覆盖。
 - 管理 API 与应用读取/监听 API 分离；只有发布事务提交成功后才发送变更通知，保存草稿不通知应用。
 - 数据库路径、持久化目录和备份恢复遵循 [生产部署](../../../docs/deployment.md)；首版为 Linux Docker 单容器，Server 统一提供静态资源与 API，SQLite 挂载持久化。本地数据库文件、日志和真实配置不应进入源码管理。

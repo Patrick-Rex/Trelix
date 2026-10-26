@@ -79,7 +79,7 @@ AppHost 保持通过 NuGet 还原编排依赖，显式设置 `AspireUseCliBundle
 | 项目读取、重命名、删除 | `GET/PUT/DELETE /api/admin/projects/{projectId}`；重命名提交 `key`、`displayName`、`concurrencyStamp`；删除通过查询参数传 `concurrencyStamp` |
 | 环境列表、创建 | `GET/POST /api/admin/projects/{projectId}/environments`；创建提交 `key`、`displayName` |
 | 环境读取、重命名、删除 | 在环境列表路径追加 `/{environmentId}`，使用 `GET/PUT/DELETE`；字段与项目操作相同 |
-| 文件列表、创建 | 在指定环境路径追加 `/files`，使用 `GET/POST`；创建只提交 `name`，初始无草稿、无发布 |
+| 文件列表、创建 | 在指定环境路径追加 `/files`，使用 `GET/POST`；创建提交 `name`，可选 `json` 在同一次写入保存初始草稿修订 1；省略或为 null 时无草稿，均不自动发布，同名返回 409 |
 | 文件与草稿读取、重命名、删除 | 在文件列表路径追加 `/{fileId}`，使用 `GET/PUT/DELETE`；读取返回 `file` 元数据与 `json` 草稿；重命名提交 `name`、`concurrencyStamp`，删除通过查询参数传并发基准 |
 | 保存草稿 | `PUT` 指定文件路径下的 `/draft`；提交 `json` 字符串及 `concurrencyStamp`，成功返回新草稿修订和并发标记 |
 | 发布草稿、历史列表 | `POST/GET` 指定文件路径下的 `/releases`；发布提交明确的 `draftRevision` 和 `concurrencyStamp`，成功返回 201、`file`、`release` 与 Location |

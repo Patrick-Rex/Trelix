@@ -4,7 +4,7 @@ Trelix 是面向配置管理员与 .NET 应用开发者的轻量级配置中心�
 
 首版包含 JSON/YAML/Tree 管理工作区、内置管理员 Cookie 登录、应用只读令牌、已发布配置读取与长轮询、.NET 配置 SDK。生产采用 Linux Docker 单容器、单实例，前后端统一交付，SQLite 挂载持久化；不依赖外部 IAM 或 SSO 平台。
 
-M1 工程基础、M2 存储认证与 M3 配置发布 API 已完成，分别见 [M1](docs/verification/m1.md)、[M2](docs/verification/m2.md) 和 [M3 验收记录](docs/verification/m3.md)。M5 已交付独立 .NET 10 SDK、服务端长轮询、原生 Options 热更新和可选 Aspire 示例，见 [M5 验收记录](docs/verification/m5.md)。当前界面已接入登录、编辑工作区、应用令牌管理与连接配置复制；M4 尚有浏览器专项验收未完成，见 [前端 README](src/frontend/README.md#当前管理界面) 和 [M4 进度记录](docs/verification/m4.md)。生产容器交付属于 M6。
+M1 工程基础、M2 存储认证与 M3 配置发布 API 已完成，分别见 [M1](docs/verification/m1.md)、[M2](docs/verification/m2.md) 和 [M3 验收记录](docs/verification/m3.md)。M5 已交付独立 .NET 10 SDK、服务端长轮询、原生 Options 热更新和可选 Aspire 示例，见 [M5 验收记录](docs/verification/m5.md)。当前界面已接入登录、编辑工作区、单文件导入导出与跨环境复制、应用令牌管理与连接配置复制；M4 尚有浏览器专项验收未完成，见 [前端 README](src/frontend/README.md#当前管理界面) 和 [M4 进度记录](docs/verification/m4.md)。生产容器交付属于 M6。
 
 ## 首次拉取后的本机准备
 

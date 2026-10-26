@@ -22,6 +22,16 @@ Monaco 和 YAML 转换通过 `monaco-editor` 与 `yaml` npm 依赖提供；Monac
 
 Server 已接入 SQLite / EF Core 和管理员认证，首次启动后端前须完成 [外部初始化配置](../../docs/local-development.md#server-存储与首次初始化)。M4 的当前实现范围和验证边界见 [M4 进度记录](../../docs/verification/m4.md)；浏览器认证后流程按 [AC-07](../../docs/quality.md#ac-07-编辑工作区) 验收。
 
+## 配置导入、导出与跨环境复制
+
+选中并载入配置文件后，工具栏提供以下操作：
+
+- **导入**：选择单个 UTF-8 JSON/YAML 文件，扩展名为 .json、.yaml 或 .yml，最多 1 MiB。通过校验后点击“载入编辑区”；有未保存内容时可取消替换。导入后手动保存草稿和发布，失败不改变原正文。
+- **导出**：选择当前编辑内容或当前已发布版本，再选择 JSON/YAML 下载。当前编辑来源包含未保存修改，必须有效；当前发布来源独立读取发布快照。导出不保存或发布，YAML 由统一数据生成。
+- **跨环境复制**：选择内容来源、同项目其他环境和目标文件名，点击“创建目标草稿”。只创建新文件，同名时保留表单并提示改名；源文件不被隐式保存，目标需切换环境检查后手动发布。
+
+三个表单各自负责输入与反馈，传输 composable 负责操作状态和读取取消，文档修改仍经工作区动作执行。复制使用创建 API 的可选 JSON 正文字段原子保存初始草稿，不新增依赖或数据库迁移。完整规则见 [配置传输](../../docs/product-plan.md#配置导入导出与跨环境复制)，验证记录见 [M4](../../docs/verification/m4.md)。
+
 ## Recommended IDE Setup
 
 [VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
