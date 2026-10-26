@@ -2,7 +2,7 @@
 
 遵循 [根指引](../../AGENTS.md)、[技术基线](../../docs/development-baseline.md) 与 [产品方案](../../docs/product-plan.md)。开发与生产的运行边界见 [架构设计](../../docs/architecture.md#运行边界)。
 
-- 当前为 Aspire AppHost SDK 13.5.4、`net10.0`，JavaScript 集成包为 13.5.4；SDK 版本由根目录 `global.json` 管理，公共构建属性与包版本继承根目录配置，遵循 [统一配置约定](../../docs/development-baseline.md#net-统一配置)。`AppHost.cs` 注册 `trelix-server` 与 `trelix-client`。
+- 当前为 Aspire AppHost SDK 13.5.4、`net10.0`，JavaScript 集成包为 13.6.0；SDK 版本由根目录 `global.json` 管理，公共构建属性与包版本继承根目录配置，遵循 [统一配置约定](../../docs/development-baseline.md#net-统一配置)。`AppHost.cs` 注册 `trelix-server` 与 `trelix-client`。
 - 负责本地资源编排、依赖引用、配置传递与启动顺序；不放业务逻辑、配置持久化和业务 API。首版生产由 Server 在 Linux Docker 单容器运行，AppHost 不作为生产入口，见 [生产部署](../../docs/deployment.md)。
 - 显式设置 `AspireUseCliBundle=false`，保持通过 NuGet 还原编排依赖，支持 IDE 与 `dotnet run` 启动；按 [ASPIRE010 官方说明](https://aspire.dev/zh-cn/diagnostics/aspire010/) 仅在 AppHost 定向抑制该 CLI bundle 功能提示，不扩大到其他警告。
 - 首版单实例 SQLite 不需要独立数据库容器。新增容器、缓存、消息系统或多实例方案需要先讨论。
