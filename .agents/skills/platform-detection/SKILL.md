@@ -11,7 +11,6 @@ description: >-
   run/filter tests or for commands, flags, TRX/dumps, or test-command/filter
   errors; use run-tests directly.
   Do not use for hot reload or migration.
-license: MIT
 ---
 
 # Test Platform and Framework Detection

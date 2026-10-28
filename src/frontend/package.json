@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run type-check && vite build",
-    "type-check": "vue-tsc --noEmit",
+    "build": "npm run check:contracts && npm run type-check && vite build",
+    "type-check": "vue-tsc --noEmit && tsc --project tsconfig.node.json",
     "preview": "vite preview",
     "lint": "run-s \"lint:*\"",
     "lint:oxlint": "oxlint . --fix",
-    "lint:eslint": "eslint . --fix --cache"
+    "lint:eslint": "eslint . --fix --cache",
+    "check": "npm run check:contracts && npm run type-check && oxlint . && eslint .",
+    "check:contracts": "node scripts/check-contracts.ts"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
@@ -21,11 +23,13 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.2",
     "@vitejs/plugin-vue": "^6.0.9",
     "eslint": "^10.10.0",
     "eslint-plugin-oxlint": "~1.83.0",
     "eslint-plugin-vue": "~10.11.0",
     "globals": "^17.12.0",
+    "jiti": "^2.7.0",
     "npm-run-all2": "~8.0.4",
     "oxlint": "~1.83.0",
     "typescript": "~5.9.3",

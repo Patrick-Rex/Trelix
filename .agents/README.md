@@ -6,11 +6,13 @@
 
 业务代码的位置与依赖方向以 [目标项目结构](../docs/architecture.md#目标项目结构) 为准；技能示例不决定项目分层、目录或业务范围。
 
+技能仅保留与开发有关的职责、操作和参考；功能与性能优先，示例须适配项目契约。既有 MIT 元数据移至 [来源声明](THIRD-PARTY-NOTICES.md)，不作为技能执行步骤或日常使用审批；不允许当前用途的外部内容不采用。项目自有内容不人为增加外部许可限制。技能与项目约束可随已确认设计升级，同轮更新对应入口和验证。
+
 ## 按任务选择
 
 | 技能 | 使用场景 | 项目绑定 |
 | --- | --- | --- |
-| [vue-best-practices](skills/vue-best-practices/SKILL.md) | Vue 组件、响应式、Vite + Vue 开发 | Composition API，后续业务代码使用 TypeScript |
+| [vue-best-practices](skills/vue-best-practices/SKILL.md) | Vue 组件、响应式、Vite + Vue 开发 | Composition API、ESM TypeScript；配置和脚本同样纳入检查，视觉实现遵循 [UI 设计契约](../docs/ui-design.md) |
 | [vue-debug-guides](skills/vue-debug-guides/SKILL.md) | Vue 运行错误、异步和响应式问题 | 根据具体问题读取参考 |
 | [create-adaptable-composable](skills/create-adaptable-composable/SKILL.md) | 可复用 composable | 用于项目逻辑复用，不开发 skills |
 | [vue-testing-best-practices](skills/vue-testing-best-practices/SKILL.md) | Vue 组件与浏览器测试 | 当前没有前端测试工具链；接入遵循根指引 |

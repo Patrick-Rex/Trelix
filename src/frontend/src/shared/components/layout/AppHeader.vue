@@ -26,10 +26,10 @@ defineEmits<{ logout: [] }>()
   background: var(--color-surface);
 }
 
-.header-product, .header-divider { color: var(--color-muted); font-size: 13px; }
-.header-title { margin: 0; font-size: 14px; font-weight: 600; }
+.header-product, .header-divider { color: var(--color-muted); font-size: var(--font-size-code); }
+.header-title { margin: 0; font-size: var(--font-size-body); font-weight: 600; }
 .header-account { display: flex; align-items: center; gap: 12px; margin-left: auto; }
-.account-name { color: var(--color-muted); font-size: 12px; }
+.account-name { color: var(--color-muted); font-size: var(--font-size-label); }
 
 @media (max-width: 600px) {
   .app-header { gap: 8px; padding-inline: 12px; }

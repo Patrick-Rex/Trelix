@@ -5,8 +5,8 @@
 ## 结构与技术
 
 - 按 [目标项目结构](../../docs/architecture.md#目标项目结构) 组织 `pages`、`features`、`shared` 和测试；入口与页面负责组合，业务状态和交互留在对应功能目录。
-- 业务代码使用 TypeScript、Composition API、`<script setup lang="ts">`，页面使用 Element Plus，配置编辑使用 Monaco。
-- 已接入 TypeScript、vue-tsc、tsconfig 和 ESLint TypeScript 支持；新增业务代码纳入类型检查，构建先检查类型再打包。
+- 自有代码、工具配置与检查脚本统一使用 ESM 和 TypeScript；Vue 使用 Composition API、`<script setup lang="ts">`。显式使用 `import`/`export` 与类型导入，不使用 CommonJS。页面使用 Element Plus，配置编辑使用 Monaco。
+- `tsconfig.json` 检查浏览器代码，`tsconfig.node.json` 检查工具配置与脚本；构建先执行契约检查及两类类型检查。JavaScript 仅用于工具确实不支持 TypeScript 的兼容边界，须记录原因、范围和退出条件并同步检查规则；当前没有自有 JavaScript 例外，第三方依赖与生成产物不手工改写。
 - 目标界面为 IDE 风格工作区：环境切换器、项目/文件资源树、编辑区及保存、发布、历史和连接配置工具栏；保存草稿与发布是不同操作；单文件导入导出与跨环境复制遵循 [配置传输规则](../../docs/product-plan.md#配置导入导出与跨环境复制)，导入只载入编辑区，复制只新建目标草稿。新建名称、侧栏开关与复制行为遵循 [编辑工作区](../../docs/product-plan.md#编辑工作区)，连接字段使用 [SDK 约定](../../docs/architecture.md#sdk-与宿主边界)。
 - 首版管理界面采用单个内置管理员 + Cookie 登录，包含登录、退出、会话失效提示和应用只读令牌管理，不实现多用户或 RBAC 界面。
 - 沿用 Node.js 24、npm 与 `package-lock.json`，不另建其他包管理器的锁文件。`.esproj` 的 Visual Studio JavaScript SDK 版本在根目录 `global.json` 统一维护；根目录 C# 构建属性及 NuGet CPM 不应用于前端项目。
@@ -21,6 +21,7 @@
 
 ## Vue 与界面
 
+- 按 [UI 设计契约](../../docs/ui-design.md) 延续现有浅色绿色 IDE 工作区；颜色、字体、字号、圆角、阴影和公共布局宽度统一取自 `src/assets/theme.css`，不在页面硬编码或另建主题。已授权的风格升级同步修改契约、令牌、实现与验收。
 - 根组件和页面负责布局与组合，按职责拆分编辑区、表单和列表；状态与副作用复杂时提取 composable，避免把整项功能塞进 `App.vue`。
 - 保持 props 向下、事件向上的数据流。派生状态用 computed；watch 处理副作用，并处理请求取消、乱序响应与卸载清理。
 - 本地状态优先留在组件或 composable；存在跨页面共享需求时再讨论状态管理方案。
@@ -56,8 +57,9 @@
 
 - 安装锁定依赖：`npm ci`。
 - 本地启动：`npm run dev`。
-- 生产构建：`npm run build`；先执行类型检查再打包，按根指引只读取构建 error 与退出码。
-- 独立类型检查：`npm run type-check`，覆盖 `src` 下的 TypeScript 与 Vue 文件。
+- 生产构建：`npm run build`；先执行契约检查、浏览器和 Node 类型检查再打包，按根指引只读取构建 error 与退出码。
+- 独立类型检查：`npm run type-check`，覆盖 `src` 下的 TypeScript/Vue、Vite/ESLint 配置及检查脚本。
+- 完整只读检查：`npm run check`，包含 `check:contracts`、类型检查、Oxlint 与 ESLint；契约检查还可独立运行。
 - 无修改的 lint 检查：`npm exec -- oxlint .` 与 `npm exec -- eslint .`，必要时仅指定修改文件。
 - `npm run lint` 的现有脚本带 `--fix`，会修改文件；不要当作只读检查运行。
 - 当前没有 `test` 或 `test:e2e` 脚本；未接入的检查不能报告通过。应用壳检查侧栏展开/收起、键盘访问和窄屏布局；编辑功能接入后验证无效输入、格式切换、保存前立即输入、并发冲突及文件切换时的未保存内容。

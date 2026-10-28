@@ -11,7 +11,6 @@ description: >-
   (platform-detection), writing or debugging test code, interpreting an
   existing coverage report, CI investigation, migration, or a persistent hot
   reload/watch loop.
-license: MIT
 metadata:
   portability: portable
   binding: optional-overlay

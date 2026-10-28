@@ -8,12 +8,13 @@ import tseslint from 'typescript-eslint'
 export default defineConfig([
   {
     name: 'app/files-to-lint',
-    files: ['**/*.{vue,js,mjs,jsx,ts}'],
+    files: ['**/*.{vue,ts,mts}'],
   },
 
-  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**']),
+  globalIgnores(['**/dist/**', '**/dist-ssr/**', '**/coverage/**', '**/artifacts/**']),
 
   {
+    files: ['src/**/*.{ts,vue}'],
     languageOptions: {
       globals: {
         ...globals.browser,
@@ -31,9 +32,20 @@ export default defineConfig([
     },
   },
   {
-    files: ['*.config.js'],
+    files: ['*.config.{ts,mts}', 'scripts/**/*.{ts,mts}'],
     languageOptions: { globals: globals.node },
   },
 
   ...pluginOxlint.buildFromOxlintConfigFile('.oxlintrc.json'),
+  {
+    rules: {
+      '@typescript-eslint/no-require-imports': 'error',
+      'no-restricted-globals': ['error', 'require', 'module', 'exports', '__dirname', '__filename'],
+      'no-restricted-syntax': [
+        'error',
+        { selector: 'TSImportEqualsDeclaration', message: '使用 ESM import 声明。' },
+        { selector: 'TSExportAssignment', message: '使用 ESM export 声明。' },
+      ],
+    },
+  },
 ])

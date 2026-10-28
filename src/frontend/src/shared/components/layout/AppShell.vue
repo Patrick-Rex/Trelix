@@ -36,18 +36,18 @@ function navigate(view: AppView): void {
 </template>
 
 <style scoped>
-.app-shell { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100dvh; }
-.sidebar-collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+.app-shell { display: grid; grid-template-columns: var(--layout-navigation) minmax(0, 1fr); min-height: 100dvh; }
+.sidebar-collapsed { grid-template-columns: var(--layout-navigation-collapsed) minmax(0, 1fr); }
 .app-body { display: flex; min-width: 0; min-height: 100dvh; flex-direction: column; }
 .main-content { display: flex; flex: 1; min-width: 0; padding: 20px; }
-.skip-link { position: fixed; top: -60px; left: 12px; z-index: 10; border-radius: 6px; padding: 10px 16px; color: white; background: var(--el-color-primary); }
+.skip-link { position: fixed; top: -60px; left: 12px; z-index: 10; border-radius: var(--radius-control); padding: 10px 16px; color: var(--color-on-primary); background: var(--el-color-primary); }
 .skip-link:focus { top: 12px; }
 
 @media (max-width: 720px) {
-  .app-shell, .sidebar-collapsed { grid-template-columns: 64px minmax(0, 1fr); }
+  .app-shell, .sidebar-collapsed { grid-template-columns: var(--layout-navigation-collapsed) minmax(0, 1fr); }
   .app-body { grid-column: 2; }
-  .app-shell :deep(.app-sidebar) { position: fixed; top: 0; bottom: 0; left: 0; z-index: 5; width: min(260px, calc(100vw - 48px)); box-shadow: 8px 0 24px #26383214; }
-  .sidebar-collapsed :deep(.app-sidebar) { width: 64px; box-shadow: none; }
+  .app-shell :deep(.app-sidebar) { position: fixed; top: 0; bottom: 0; left: 0; z-index: 5; width: min(260px, calc(100vw - 48px)); box-shadow: var(--shadow-navigation); }
+  .sidebar-collapsed :deep(.app-sidebar) { width: var(--layout-navigation-collapsed); box-shadow: none; }
   .main-content { padding: 12px; }
 }
 </style>

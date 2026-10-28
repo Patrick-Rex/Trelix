@@ -178,15 +178,15 @@ function isObject(value: JsonValue): value is Record<string, JsonValue> {
 <style scoped>
 .tree-node { min-width: 0; }
 .node-row { display: flex; align-items: center; gap: 8px; min-height: 38px; }
-.node-label { min-width: 92px; color: var(--color-text); font-family: ui-monospace, Consolas, monospace; font-size: 12px; }
-.key-input { width: min(170px, 24vw); font-family: ui-monospace, Consolas, monospace; }
-.type-select { width: 92px; padding-inline: 8px; font-size: 12px; }
+.node-label { min-width: 92px; color: var(--color-text); font-family: var(--font-mono); font-size: var(--font-size-label); }
+.key-input { width: min(170px, 24vw); font-family: var(--font-mono); }
+.type-select { width: 92px; padding-inline: 8px; font-size: var(--font-size-label); }
 .value-input { flex: 1; min-width: 90px; }
-.boolean-input { display: flex; align-items: center; gap: 5px; min-width: 52px; color: var(--color-muted); font-size: 12px; }
-.null-value { min-width: 52px; color: var(--color-muted); font-family: ui-monospace, Consolas, monospace; }
-.remove-node { margin-left: auto; font-size: 11px; }
+.boolean-input { display: flex; align-items: center; gap: 5px; min-width: 52px; color: var(--color-muted); font-size: var(--font-size-label); }
+.null-value { min-width: 52px; color: var(--color-muted); font-family: var(--font-mono); }
+.remove-node { margin-left: auto; font-size: var(--font-size-small); }
 .children { margin-left: 14px; border-left: 1px solid var(--color-border); padding-left: 14px; }
-.empty-children { padding: 8px 0; color: var(--color-muted); font-size: 12px; }
+.empty-children { padding: 8px 0; color: var(--color-muted); font-size: var(--font-size-label); }
 .tree-actions { padding: 4px 0 8px; }
 .root > .node-row { padding-bottom: 8px; }
 

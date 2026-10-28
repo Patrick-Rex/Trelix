@@ -276,15 +276,15 @@ function changeFormat(format: DocumentFormat): void {
 </template>
 
 <style scoped>
-.workspace-page { display: grid; min-width: 0; min-height: calc(100dvh - 104px); flex: 1; grid-template-columns: 224px minmax(0, 1fr); border: 1px solid var(--color-border); border-radius: 10px; overflow: hidden; background: var(--color-surface); }
+.workspace-page { display: grid; min-width: 0; min-height: calc(100dvh - 104px); flex: 1; grid-template-columns: var(--layout-resources) minmax(0, 1fr); border: 1px solid var(--color-border); border-radius: var(--radius-workbench); overflow: hidden; background: var(--color-surface); }
 .workspace-main { display: flex; min-width: 0; min-height: 0; flex-direction: column; padding: 0 16px 16px; }
-.workspace-context { display: flex; min-height: 42px; align-items: center; gap: 9px; overflow: hidden; color: var(--color-muted); white-space: nowrap; font-size: 10px; }
+.workspace-context { display: flex; min-height: 42px; align-items: center; gap: 9px; overflow: hidden; color: var(--color-muted); white-space: nowrap; font-size: var(--font-size-caption); }
 .workspace-context strong { overflow: hidden; color: var(--color-text); text-overflow: ellipsis; font-weight: 600; }
-.transfer-status { margin: 10px 0 0; color: var(--el-color-primary); font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.transfer-status { margin: 10px 0 0; color: var(--el-color-primary); font-size: var(--font-size-label); line-height: 1.7; overflow-wrap: anywhere; }
 
 @media (max-width: 900px) {
   .workspace-page { grid-template-columns: minmax(0, 1fr); }
   .workspace-main { padding: 0 10px 10px; }
 }
-@media (max-width: 600px) { .workspace-context { gap: 5px; font-size: 9px; } }
+@media (max-width: 600px) { .workspace-context { gap: 5px; font-size: var(--font-size-micro); } }
 </style>

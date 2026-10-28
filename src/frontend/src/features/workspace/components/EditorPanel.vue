@@ -106,37 +106,37 @@ const editorLanguage = computed(() => props.format === 'yaml' ? 'yaml' : 'json')
 </template>
 
 <style scoped>
-.editor-workbench { display: flex; min-width: 0; min-height: 520px; flex: 1; flex-direction: column; overflow: hidden; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); }
+.editor-workbench { display: flex; min-width: 0; min-height: 520px; flex: 1; flex-direction: column; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-workbench); background: var(--color-surface); }
 .editor-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 70px; border-bottom: 1px solid var(--color-border); padding: 12px 18px; }
 .file-heading { display: flex; min-width: 0; align-items: center; gap: 11px; }
-.file-icon { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border-radius: 8px; color: #9c783f; background: #f7f1e7; font-family: ui-monospace, monospace; font-size: 10px; }
+.file-icon { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border-radius: var(--radius-panel); color: var(--color-file-mark); background: var(--color-file-mark-bg); font-family: var(--font-mono); font-size: var(--font-size-caption); }
 .file-title-group { display: grid; min-width: 0; gap: 4px; }
-.file-title-group h2 { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
-.file-meta { color: var(--color-muted); font-size: 10px; }
-.save-state { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; color: #43805d; white-space: nowrap; font-size: 10px; }
+.file-title-group h2 { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-body); }
+.file-meta { color: var(--color-muted); font-size: var(--font-size-caption); }
+.save-state { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; color: var(--color-saved); white-space: nowrap; font-size: var(--font-size-caption); }
 .save-state i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-.save-state.modified { color: #a36d26; }
+.save-state.modified { color: var(--color-modified); }
 .toolbar-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 5px; }
-.toolbar-actions .button { min-height: 32px; padding: 6px 9px; font-size: 11px; }
+.toolbar-actions .button { min-height: 32px; padding: 6px 9px; font-size: var(--font-size-small); }
 .editor-tabs { display: flex; align-items: center; gap: 2px; border-bottom: 1px solid var(--color-border); padding: 0 16px; }
-.format-tab { position: relative; min-height: 40px; border: 0; padding: 0 13px; color: var(--color-muted); background: transparent; font: inherit; font-size: 12px; cursor: pointer; }
+.format-tab { position: relative; min-height: 40px; border: 0; padding: 0 13px; color: var(--color-muted); background: transparent; font: inherit; font-size: var(--font-size-label); cursor: pointer; }
 .format-tab.active { color: var(--el-color-primary); font-weight: 650; }
 .format-tab.active::after { position: absolute; right: 10px; bottom: -1px; left: 10px; height: 2px; background: var(--el-color-primary); content: ''; }
-.format-hint { margin-left: auto; color: var(--color-muted); font-size: 10px; }
-.editor-alert, .validation-alert, .validation-pending { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; font-size: 11px; }
-.editor-alert { color: #7b2e25; background: #fff4f1; }
-.validation-alert { display: block; border-bottom: 1px solid #f3d3ce; color: #9f3125; background: #fff9f8; }
-.validation-pending { justify-content: flex-start; color: #8a6525; background: #fffbf1; }
+.format-hint { margin-left: auto; color: var(--color-muted); font-size: var(--font-size-caption); }
+.editor-alert, .validation-alert, .validation-pending { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 16px; font-size: var(--font-size-small); }
+.editor-alert { color: var(--color-editor-error); background: var(--color-editor-error-bg); }
+.validation-alert { display: block; border-bottom: 1px solid var(--color-validation-border); color: var(--color-error-text); background: var(--color-validation-bg); }
+.validation-pending { justify-content: flex-start; color: var(--color-warning); background: var(--color-warning-bg); }
 .editor-body { position: relative; display: flex; min-height: 300px; flex: 1; overflow: hidden; }
-.loading-overlay { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; color: var(--color-muted); background: #ffffffd9; font-size: 12px; }
+.loading-overlay { position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; color: var(--color-muted); background: var(--color-loading-overlay); font-size: var(--font-size-label); }
 .code-view { display: flex; width: 100%; min-height: 300px; flex: 1; }
 .code-view :deep(.monaco-container) { flex: 1; }
 .editor-loading { display: grid; width: 100%; min-height: 300px; place-items: center; color: var(--color-muted); }
 .editor-empty { display: grid; flex: 1; align-content: center; justify-items: center; padding: 40px 18px; text-align: center; }
-.empty-mark { display: grid; width: 64px; height: 64px; place-items: center; border-radius: 18px; color: var(--el-color-primary); background: var(--el-color-primary-light-9); font-family: ui-monospace, monospace; font-size: 18px; }
-.editor-empty h3 { margin: 18px 0 8px; font-size: 16px; }
-.editor-empty p { margin: 0; color: var(--color-muted); font-size: 12px; }
-.editor-statusbar { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--color-border); padding: 8px 13px; color: var(--color-muted); font-size: 10px; }
+.empty-mark { display: grid; width: 64px; height: 64px; place-items: center; border-radius: var(--radius-empty); color: var(--el-color-primary); background: var(--el-color-primary-light-9); font-family: var(--font-mono); font-size: var(--font-size-symbol); }
+.editor-empty h3 { margin: 18px 0 8px; font-size: var(--font-size-section); }
+.editor-empty p { margin: 0; color: var(--color-muted); font-size: var(--font-size-label); }
+.editor-statusbar { display: flex; justify-content: space-between; gap: 12px; border-top: 1px solid var(--color-border); padding: 8px 13px; color: var(--color-muted); font-size: var(--font-size-caption); }
 
 @media (max-width: 1000px) {
   .editor-header { align-items: flex-start; flex-direction: column; }

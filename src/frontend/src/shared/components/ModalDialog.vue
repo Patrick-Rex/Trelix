@@ -19,8 +19,8 @@ function updateOpen(open: boolean): void {
 </template>
 
 <style scoped>
-:global(.el-dialog) { max-height: 80dvh; overflow: auto; border: 1px solid var(--color-border); border-radius: 12px; color: var(--color-text); box-shadow: 0 24px 80px #18211c40; }
+:global(.el-dialog) { max-height: 80dvh; overflow: auto; border: 1px solid var(--color-border); border-radius: var(--radius-dialog); color: var(--color-text); box-shadow: var(--shadow-dialog); }
 :global(.el-dialog__header) { border-bottom: 1px solid var(--color-border); padding: 16px 20px; }
-:global(.el-dialog__title) { font-size: 16px; font-weight: 650; }
+:global(.el-dialog__title) { font-size: var(--font-size-section); font-weight: 650; }
 :global(.el-dialog__body) { padding: 20px; }
 </style>

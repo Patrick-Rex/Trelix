@@ -43,10 +43,4 @@ function submit(): void {
   </ModalDialog>
 </template>
 
-<style scoped>
-.transfer-form { display: grid; gap: 10px; }
-.transfer-form label { font-size: 12px; font-weight: 600; }
-.transfer-description { margin: 0; color: var(--color-muted); font-size: 12px; line-height: 1.7; }
-.transfer-error { margin: 0; color: var(--color-danger); font-size: 12px; }
-.transfer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
-</style>
+<style scoped src="./configTransfer.css" />

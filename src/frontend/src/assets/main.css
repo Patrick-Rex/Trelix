@@ -1,23 +1,13 @@
+@import './theme.css';
+
 :root {
-  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-  color: #263832;
-  background: #f5f7f6;
-  font-size: 14px;
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  background: var(--color-canvas);
+  font-size: var(--font-size-body);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  --color-text: #263832;
-  --color-muted: #738079;
-  --color-surface: #ffffff;
-  --color-border: #e4eae6;
-  --color-danger: #b42318;
-  --el-color-primary: #237454;
-  --el-color-primary-light-3: #659e87;
-  --el-color-primary-light-5: #91baa9;
-  --el-color-primary-light-7: #bdd5cc;
-  --el-color-primary-light-8: #d3e3dd;
-  --el-color-primary-light-9: #e9f1ee;
-  --el-color-primary-dark-2: #1c5d43;
 }
 
 *,
@@ -43,10 +33,10 @@ select,
 textarea {
   min-height: 36px;
   border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   padding: 7px 10px;
   color: var(--color-text);
-  background: #fff;
+  background: var(--color-surface);
 }
 
 input:focus,
@@ -64,19 +54,19 @@ textarea:focus {
   justify-content: center;
   gap: 7px;
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   padding: 7px 11px;
   color: var(--color-text);
   background: transparent;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-label);
   cursor: pointer;
 }
 
 .button:disabled { opacity: 0.5; cursor: not-allowed; }
-.button-primary { border-color: var(--el-color-primary); color: #fff; background: var(--el-color-primary); }
-.button-secondary { border-color: var(--color-border); background: #fff; }
-.button-quiet:hover { background: #f2f5f3; }
+.button-primary { border-color: var(--el-color-primary); color: var(--color-on-primary); background: var(--el-color-primary); }
+.button-secondary { border-color: var(--color-border); background: var(--color-surface); }
+.button-quiet:hover { background: var(--color-hover); }
 .button-danger { color: var(--color-danger); }
 
 a:focus-visible,

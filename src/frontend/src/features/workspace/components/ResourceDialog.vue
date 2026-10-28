@@ -95,7 +95,7 @@ function dialogTitle(kind: ResourceKind, mode: 'create' | 'rename'): string {
 
 <style scoped>
 .resource-form { display: grid; gap: 10px; }
-.resource-form label { margin-top: 5px; font-size: 12px; font-weight: 600; }
-.form-error { margin: 0; color: var(--color-danger); font-size: 12px; }
+.resource-form label { margin-top: 5px; font-size: var(--font-size-label); font-weight: 600; }
+.form-error { margin: 0; color: var(--color-danger); font-size: var(--font-size-label); }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; }
 </style>

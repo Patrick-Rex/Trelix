@@ -106,7 +106,7 @@ function locateParent(root: JsonObject, path: Array<string | number>): JsonObjec
 
 <style scoped>
 .tree-editor { display: flex; min-height: 280px; flex: 1; flex-direction: column; }
-.tree-help { margin: 0; border-bottom: 1px solid var(--color-border); padding: 12px 16px; color: var(--color-muted); font-size: 12px; }
-.tree-error { margin: 0; padding: 10px 16px; color: var(--color-danger); font-size: 12px; }
+.tree-help { margin: 0; border-bottom: 1px solid var(--color-border); padding: 12px 16px; color: var(--color-muted); font-size: var(--font-size-label); }
+.tree-error { margin: 0; padding: 10px 16px; color: var(--color-danger); font-size: var(--font-size-label); }
 .tree-scroll { overflow: auto; padding: 14px 16px 20px; }
 </style>

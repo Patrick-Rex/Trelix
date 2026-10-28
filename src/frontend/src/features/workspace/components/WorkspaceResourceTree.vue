@@ -85,32 +85,32 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-.resource-panel { display: flex; min-width: 0; min-height: 0; flex-direction: column; border-right: 1px solid var(--color-border); background: #fbfcfb; }
+.resource-panel { display: flex; min-width: 0; min-height: 0; flex-direction: column; border-right: 1px solid var(--color-border); background: var(--color-panel); }
 .panel-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 6px 8px; padding: 18px 12px 14px; }
-.eyebrow { grid-column: 1 / -1; color: var(--color-muted); font-size: 9px; font-weight: 700; letter-spacing: 1.6px; }
-.panel-heading h2 { margin: 0; font-size: 14px; }
+.eyebrow { grid-column: 1 / -1; color: var(--color-muted); font-size: var(--font-size-micro); font-weight: 700; letter-spacing: 1.6px; }
+.panel-heading h2 { margin: 0; font-size: var(--font-size-body); }
 .project-list { display: grid; gap: 3px; max-height: 32%; overflow: auto; padding: 0 8px 12px; }
-.resource-row { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; border: 0; border-radius: 6px; padding: 8px 9px; color: var(--color-text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
-.resource-row:hover { background: #eef2ef; }
+.resource-row { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; border: 0; border-radius: var(--radius-control); padding: 8px 9px; color: var(--color-text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.resource-row:hover { background: var(--color-resource-hover); }
 .resource-row.selected { color: var(--el-color-primary-dark-2); background: var(--el-color-primary-light-9); font-weight: 600; }
-.resource-name { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-.resource-key { overflow: hidden; max-width: 86px; color: var(--color-muted); text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
-.resource-glyph { color: #759080; font-size: 13px; }
+.resource-name { overflow: hidden; flex: 1; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-label); }
+.resource-key { overflow: hidden; max-width: 86px; color: var(--color-muted); text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-caption); }
+.resource-glyph { color: var(--color-resource-icon); font-size: var(--font-size-code); }
 .tree-section { border-top: 1px solid var(--color-border); padding: 13px 10px 14px; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 4px; padding: 0 2px 8px; }
-.section-heading h3 { margin: 0; color: #637169; font-size: 11px; font-weight: 650; }
+.section-heading h3 { margin: 0; color: var(--color-section-label); font-size: var(--font-size-small); font-weight: 650; }
 .section-actions { display: flex; flex-shrink: 0; align-items: center; gap: 1px; }
 .icon-button { min-width: 28px; min-height: 28px; padding: 5px; color: var(--color-muted); }
 .icon-button :deep(svg) { width: 14px; height: 14px; }
 .create-button { color: var(--el-color-primary); }
 .icon-button.button-danger { color: var(--color-danger); }
-.environment-select { width: 100%; min-height: 34px; font-size: 11px; }
+.environment-select { width: 100%; min-height: 34px; font-size: var(--font-size-small); }
 .files-section { flex: 1; overflow: auto; }
 .file-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .file-row { min-height: 34px; padding: 7px 8px; }
-.file-glyph { color: #a7834d; font-family: ui-monospace, monospace; font-size: 10px; }
-.version-badge { border-radius: 8px; padding: 2px 5px; color: var(--color-muted); background: #eef1ef; font-size: 9px; }
-.resource-message { margin: 5px 3px; color: var(--color-muted); font-size: 11px; line-height: 1.7; }
+.file-glyph { color: var(--color-file-icon); font-family: var(--font-mono); font-size: var(--font-size-caption); }
+.version-badge { border-radius: var(--radius-panel); padding: 2px 5px; color: var(--color-muted); background: var(--color-badge); font-size: var(--font-size-micro); }
+.resource-message { margin: 5px 3px; color: var(--color-muted); font-size: var(--font-size-small); line-height: 1.7; }
 .resource-empty { margin-top: 20px; padding: 0 16px; text-align: center; }
 
 @media (max-width: 900px) { .resource-panel { border-right: 0; border-bottom: 1px solid var(--color-border); } }

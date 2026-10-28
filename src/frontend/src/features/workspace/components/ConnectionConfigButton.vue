@@ -100,14 +100,14 @@ async function copyConfiguration(): Promise<void> {
 </template>
 
 <style scoped>
-.connection-trigger { min-height: 32px; padding: 6px 9px; font-size: 11px; }
+.connection-trigger { min-height: 32px; padding: 6px 9px; font-size: var(--font-size-small); }
 .connection-form { display: grid; gap: 10px; }
-.connection-form label { font-size: 12px; font-weight: 600; }
-.connection-form :deep(textarea) { font-family: ui-monospace, monospace; font-size: 12px; }
-.connection-hint, .connection-error, .connection-warning, .connection-success { margin: 0; font-size: 12px; line-height: 1.6; }
+.connection-form label { font-size: var(--font-size-label); font-weight: 600; }
+.connection-form :deep(textarea) { font-family: var(--font-mono); font-size: var(--font-size-label); }
+.connection-hint, .connection-error, .connection-warning, .connection-success { margin: 0; font-size: var(--font-size-label); line-height: 1.6; }
 .connection-hint { color: var(--color-muted); }
 .connection-error { color: var(--color-danger); }
-.connection-warning { color: #8a6525; }
+.connection-warning { color: var(--color-warning); }
 .connection-success { color: var(--el-color-primary); }
 .connection-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
 </style>

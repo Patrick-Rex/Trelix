@@ -38,17 +38,17 @@ defineEmits<{ navigate: [view: AppView]; toggle: [] }>()
 <style scoped>
 .app-sidebar { position: sticky; top: 0; display: flex; min-height: 0; height: 100dvh; align-self: start; flex-direction: column; overflow: hidden; border-right: 1px solid var(--color-border); background: var(--color-surface); }
 .brand { display: flex; flex-shrink: 0; align-items: center; gap: 12px; min-height: 80px; padding: 20px; color: var(--color-text); text-decoration: none; }
-.brand-mark { display: grid; flex: 0 0 32px; height: 32px; place-items: center; border-radius: 9px; color: white; background: var(--el-color-primary); font-size: 23px; font-weight: 700; }
-.brand-name { font-size: 20px; font-weight: 650; line-height: 1.25; letter-spacing: -0.5px; }
-.brand-caption { display: block; margin-top: 4px; color: var(--color-muted); font-size: 11px; font-weight: 400; letter-spacing: 2px; }
+.brand-mark { display: grid; flex: 0 0 32px; height: 32px; place-items: center; border-radius: var(--radius-card); color: var(--color-on-primary); background: var(--el-color-primary); font-size: var(--font-size-brand-mark); font-weight: 700; }
+.brand-name { font-size: var(--font-size-brand); font-weight: 650; line-height: 1.25; letter-spacing: -0.5px; }
+.brand-caption { display: block; margin-top: 4px; color: var(--color-muted); font-size: var(--font-size-small); font-weight: 400; letter-spacing: 2px; }
 .sidebar-footer { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; border-top: 1px solid var(--color-border); padding: 10px 12px; }
 .sidebar-toggle { width: 36px; min-height: 36px; flex: 0 0 36px; padding: 8px; }
 .sidebar-toggle :deep(svg) { width: 18px; height: 18px; }
 .navigation { display: grid; min-height: 0; align-content: start; gap: 6px; overflow-y: auto; padding: 12px; }
-.nav-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; border: 0; border-radius: 7px; padding: 10px 12px; color: var(--color-text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.nav-item { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 42px; border: 0; border-radius: var(--radius-row); padding: 10px 12px; color: var(--color-text); background: transparent; font: inherit; text-align: left; cursor: pointer; }
 .nav-item.active { color: var(--el-color-primary); background: var(--el-color-primary-light-9); font-weight: 600; }
-.nav-icon { display: inline-grid; width: 20px; place-items: center; font-size: 18px; }
-.sidebar-note { margin: 0; color: var(--color-muted); font-size: 10px; }
+.nav-icon { display: inline-grid; width: 20px; place-items: center; font-size: var(--font-size-symbol); }
+.sidebar-note { margin: 0; color: var(--color-muted); font-size: var(--font-size-caption); }
 .compact .brand { justify-content: center; padding-inline: 12px; }
 .compact .navigation { padding-inline: 8px; }
 .compact .sidebar-footer { justify-content: center; }

@@ -4,6 +4,10 @@
 
 项目文件为 `trelix.client.esproj`，npm 包名为 `trelix.client`。业务应用使用的 [.NET SDK](../sdk/Trelix.Extensions.Configuration/README.md) 位于独立项目，与本目录职责分开。
 
+自有模块、Vite/ESLint 配置和检查脚本均使用 ESM TypeScript；包显式声明 `type: module`，生产 worker 显式输出 ES 模块。浏览器与 Node 工具分别按 `tsconfig.json`、`tsconfig.node.json` 做严格类型检查。ESLint 通过其支持的 `jiti` 加载 TypeScript 配置，不启用实验性加载开关；`@types/node` 与 Node 24 基线一致。当前没有自有 JavaScript 兼容例外。
+
+界面保持 [UI 设计契约](../../docs/ui-design.md) 中的浅色绿色 IDE 风格。`src/assets/theme.css` 集中维护视觉令牌，组件引用共享变量；Element Plus 与 Monaco 保持对应主题。导入、导出与跨环境复制弹窗以 scoped 方式复用 `configTransfer.css`，表单样式只维护一份。视觉升级同步修改契约、令牌和验收，已有规范不会阻止已确认的设计升级。
+
 跨前后端的环境准备、统一启动和联调见 [本地开发](../../docs/local-development.md)。产品规则见 [产品方案](../../docs/product-plan.md)，技术选择见 [技术基线](../../docs/development-baseline.md)，前端实现约束见 [前端指引](AGENTS.md)，行为验收见 [AC-07](../../docs/quality.md#ac-07-编辑工作区)。完整入口见 [文档索引](../../docs/README.md)。
 
 首版生产构建产物随 Server 在 Linux Docker 单容器统一交付，详见 [生产部署](../../docs/deployment.md)。当前开发服务器与生产构建脚本不表示已完成容器交付。
@@ -65,7 +69,7 @@ npm ci
 npm run dev
 ```
 
-独立启动时从 Vite 控制台获取 HTTPS 地址，端口可通过 `DEV_SERVER_PORT` 覆盖；后端需要另行启动。`/api`、`/health`、`/alive` 代理优先读取 `services__trelix-server__https__0`，未设置时使用 `vite.config.js` 中的开发回退地址；后端默认地址见其 `Properties/launchSettings.json` 的 `https` Profile。健康检查由 Server 的 ServiceDefaults 在 Development 环境提供；管理界面通过同源 `/api/admin` 访问会话和管理资源。
+独立启动时从 Vite 控制台获取 HTTPS 地址，端口可通过 `DEV_SERVER_PORT` 覆盖；后端需要另行启动。`/api`、`/health`、`/alive` 代理优先读取 `services__trelix-server__https__0`，未设置时使用 `vite.config.ts` 中的开发回退地址；后端默认地址见其 `Properties/launchSettings.json` 的 `https` Profile。健康检查由 Server 的 ServiceDefaults 在 Development 环境提供；管理界面通过同源 `/api/admin` 访问会话和管理资源。开发证书只在开发服务器启动时准备，构建与生产预览不要求导出证书。
 
 ## 构建与检查
 
@@ -75,7 +79,7 @@ npm run dev
 npm run build
 ```
 
-构建先执行 `vue-tsc --noEmit`，类型检查成功后才执行 Vite 打包；按根指引只读取构建 error 与退出码。也可独立运行 `npm run type-check`。当前没有 `test` 或 `test:e2e` 脚本，`.esproj` 不声明未安装的测试框架。
+构建依次执行 `check:contracts`、`vue-tsc --noEmit`、Node 工具的 `tsc` 检查及 Vite 打包；按根指引只读取构建 error 与退出码。也可独立运行 `npm run type-check`。当前没有 `test` 或 `test:e2e` 脚本，契约检查不等于业务测试套件，`.esproj` 不声明未安装的测试框架。
 
 构建成功后预览 `dist`：
 
@@ -85,7 +89,13 @@ npm run preview
 
 从 Vite 控制台获取预览地址；使用本地初始化的管理员凭证检查登录、资源树、JSON/YAML/Tree 切换、保存前立即输入、发布/历史/回滚、令牌创建/轮换/撤销、401/403 与窄屏布局。真实 worker 路径和 IME、光标、撤销及未保存切换按 AC-07 验收。此预览用于核对前端产物，不代表 Server 静态资源集成或生产容器已经交付。
 
-无修改的 lint 检查：
+完整只读检查（模块、Vue 脚本语言、视觉令牌、类型与 lint）：
+
+```sh
+npm run check
+```
+
+仅检查静态契约可运行 `npm run check:contracts`。CommonJS 语法由 ESLint 拦截，ESM/TypeScript 文件范围与主题由契约脚本检查。仅执行无修改的 lint：
 
 ```sh
 npm exec -- oxlint .

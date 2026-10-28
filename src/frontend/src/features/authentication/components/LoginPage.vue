@@ -63,10 +63,10 @@ async function submitLogin(): Promise<void> {
 .login-card {
   width: min(100%, 420px);
   border: 1px solid var(--color-border);
-  border-radius: 14px;
+  border-radius: var(--radius-login);
   padding: 36px;
   background: var(--color-surface);
-  box-shadow: 0 18px 50px #2638320e;
+  box-shadow: var(--shadow-login);
 }
 
 .login-brand {
@@ -81,22 +81,22 @@ async function submitLogin(): Promise<void> {
   width: 34px;
   height: 34px;
   place-items: center;
-  border-radius: 9px;
-  color: white;
+  border-radius: var(--radius-card);
+  color: var(--color-on-primary);
   background: var(--el-color-primary);
-  font-size: 22px;
+  font-size: var(--font-size-title);
 }
 
-h1 { margin: 30px 0 8px; font-size: 22px; }
-.login-description, .login-note { color: var(--color-muted); font-size: 13px; line-height: 1.7; }
+h1 { margin: 30px 0 8px; font-size: var(--font-size-title); }
+.login-description, .login-note { color: var(--color-muted); font-size: var(--font-size-code); line-height: 1.7; }
 .login-description { margin: 0; }
 .login-form { display: grid; gap: 9px; margin-top: 25px; }
-.login-form label { margin-top: 8px; font-size: 13px; font-weight: 600; }
+.login-form label { margin-top: 8px; font-size: var(--font-size-code); font-weight: 600; }
 .login-form input { width: 100%; }
 .login-submit { width: 100%; margin-top: 12px; }
-.login-note { margin: 18px 0 0; font-size: 11px; }
-.form-error { margin: 2px 0; color: var(--color-danger); font-size: 12px; }
-.session-expired { margin: 14px 0 -8px; border-radius: 6px; padding: 9px 10px; color: #8a6525; background: #fffbf1; font-size: 12px; }
+.login-note { margin: 18px 0 0; font-size: var(--font-size-small); }
+.form-error { margin: 2px 0; color: var(--color-danger); font-size: var(--font-size-label); }
+.session-expired { margin: 14px 0 -8px; border-radius: var(--radius-control); padding: 9px 10px; color: var(--color-warning); background: var(--color-warning-bg); font-size: var(--font-size-label); }
 
 @media (max-width: 480px) {
   .login-card { padding: 26px 22px; }

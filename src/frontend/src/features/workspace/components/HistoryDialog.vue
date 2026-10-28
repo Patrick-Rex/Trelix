@@ -82,16 +82,16 @@ function formatDate(value: string): string {
 <style scoped>
 .history-layout { display: grid; min-height: 320px; grid-template-columns: minmax(190px, 0.8fr) minmax(0, 1.5fr); gap: 18px; }
 .version-list { display: grid; align-content: start; gap: 5px; max-height: 58dvh; overflow: auto; }
-.version-item { display: grid; gap: 4px; border: 1px solid transparent; border-radius: 7px; padding: 10px; color: var(--color-text); background: #f7f9f7; text-align: left; cursor: pointer; }
+.version-item { display: grid; gap: 4px; border: 1px solid transparent; border-radius: var(--radius-row); padding: 10px; color: var(--color-text); background: var(--color-history-item); text-align: left; cursor: pointer; }
 .version-item.selected { border-color: var(--el-color-primary-light-5); background: var(--el-color-primary-light-9); }
-.version-title { font-size: 12px; font-weight: 650; }
-.current-tag { margin-left: 5px; color: var(--el-color-primary); font-size: 10px; }
-.version-date, .version-source { color: var(--color-muted); font-size: 10px; }
-.preview-panel { display: flex; min-width: 0; flex-direction: column; border: 1px solid var(--color-border); border-radius: 8px; overflow: hidden; }
+.version-title { font-size: var(--font-size-label); font-weight: 650; }
+.current-tag { margin-left: 5px; color: var(--el-color-primary); font-size: var(--font-size-caption); }
+.version-date, .version-source { color: var(--color-muted); font-size: var(--font-size-caption); }
+.preview-panel { display: flex; min-width: 0; flex-direction: column; border: 1px solid var(--color-border); border-radius: var(--radius-panel); overflow: hidden; }
 .preview-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--color-border); padding: 8px 10px; }
-.preview-heading h3 { margin: 0; font-size: 12px; }
-.preview-message, .history-empty { margin: auto; padding: 18px; color: var(--color-muted); font-size: 11px; text-align: center; }
-.json-preview { flex: 1; max-height: 52dvh; overflow: auto; margin: 0; padding: 12px; color: #35443b; background: #fbfcfb; font-size: 10px; line-height: 1.6; tab-size: 2; }
+.preview-heading h3 { margin: 0; font-size: var(--font-size-label); }
+.preview-message, .history-empty { margin: auto; padding: 18px; color: var(--color-muted); font-size: var(--font-size-small); text-align: center; }
+.json-preview { flex: 1; max-height: 52dvh; overflow: auto; margin: 0; padding: 12px; color: var(--color-preview-text); background: var(--color-panel); font-size: var(--font-size-caption); line-height: 1.6; tab-size: 2; }
 
 @media (max-width: 650px) { .history-layout { grid-template-columns: 1fr; } .version-list { max-height: 180px; } }
 </style>

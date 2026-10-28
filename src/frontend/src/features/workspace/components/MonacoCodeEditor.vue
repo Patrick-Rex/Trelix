@@ -33,6 +33,7 @@ onMounted(async () => {
       },
     }
     registerYamlLanguage(monaco)
+    const theme = getComputedStyle(document.documentElement)
     model = monaco.editor.createModel(props.value, props.format, monaco.Uri.parse('inmemory://trelix/config'))
     editor = monaco.editor.create(container.value, {
       model,
@@ -43,7 +44,9 @@ onMounted(async () => {
       scrollBeyondLastLine: false,
       tabSize: 2,
       insertSpaces: true,
-      fontSize: 13,
+      theme: 'vs',
+      fontFamily: theme.getPropertyValue('--font-mono').trim(),
+      fontSize: Number.parseFloat(theme.getPropertyValue('--font-size-code')),
       lineNumbersMinChars: 3,
       renderLineHighlight: 'line',
       wordWrap: 'on',
@@ -128,6 +131,6 @@ function registerYamlLanguage(monaco: typeof import('monaco-editor')): void {
 </template>
 
 <style scoped>
-.monaco-container { width: 100%; height: 100%; min-height: 280px; overflow: hidden; background: #fff; }
-.monaco-error { display: grid; width: 100%; min-height: 280px; place-items: center; color: var(--color-danger); font-size: 12px; }
+.monaco-container { width: 100%; height: 100%; min-height: 280px; overflow: hidden; background: var(--color-surface); }
+.monaco-error { display: grid; width: 100%; min-height: 280px; place-items: center; color: var(--color-danger); font-size: var(--font-size-label); }
 </style>

@@ -16,7 +16,8 @@
 | 本地编排 | Aspire 13 | AppHost SDK 为 13.5.4，JavaScript 集成包为 13.6.0，分别由 `global.json` 与 `Directory.Packages.props` 管理；保持 NuGet 还原编排依赖，CLI bundle 与提示处理见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) |
 | 公共运行能力 | ServiceDefaults 提供 OpenTelemetry、健康检查、服务发现与 HTTP 弹性 | 公共注册由 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 维护；避免重复注册 |
 | 前端框架 | Vue 3 + Vite + Composition API | [package.json](../src/frontend/package.json) 声明 Vue `^3.5.42`、Vite `^8.3.0`；安装版本由锁文件确定 |
-| 前端语言 | TypeScript 与 `<script setup lang="ts">` | 已接入 TypeScript 5.9、vue-tsc、tsconfig 与 ESLint TypeScript 支持；`npm run build` 先检查类型再打包，版本由 npm 清单和锁文件管理 |
+| 前端模块与语言 | 全部自有代码、工具配置和检查脚本使用 ESM + TypeScript；Vue 使用 `<script setup lang="ts">` | 包声明 `type: module`；TypeScript 5.9、vue-tsc 和独立 Node 配置覆盖源码与工具，Vite worker 输出 ES 模块；构建先做契约和类型检查，再打包，当前没有自有 JavaScript 例外 |
+| UI 风格 | 现有浅色绿色 IDE 工作区，共享主题变量 | [UI 设计契约](ui-design.md) 与 [theme.css](../src/frontend/src/assets/theme.css) 维护视觉基线，组件不另设主题；已授权的演进同步修改契约、实现与验证 |
 | Node 与包管理 | Node.js 24 + npm 10+ | [package.json](../src/frontend/package.json)、[.nvmrc](../src/frontend/.nvmrc)；沿用 `package-lock.json` |
 | 页面组件 | Element Plus | 已接入 Element Plus 与 `@element-plus/icons-vue`；显式导入组件、图标和所需样式，版本以 npm 清单和锁文件为准 |
 | 配置编辑器 | Monaco Editor + `yaml` | 前端依赖 `monaco-editor` `^0.56.0` 与 `yaml` `^2.9.1`；Monaco 使用 Vite ESM worker 并延迟加载，YAML 解析按 1.2 版规则；单文件导入导出复用现有校验和浏览器文件 API，跨环境复制复用文件创建 API 的可选初始 JSON 草稿，无新增依赖或数据库迁移；实例生命周期与交互遵循前端指引 |
@@ -28,6 +29,10 @@
 | 生产交付 | Linux Docker 单容器、单个 Server 实例，前后端统一交付 | Server 提供前端静态资源与 API，SQLite 挂载持久化；详见 [生产部署](deployment.md) |
 
 SQLite 的选型边界参考 [官方说明](https://www.sqlite.org/whentouse.html)。持久化与备份必须覆盖配置、版本、管理员及应用令牌授权信息。
+
+设计与约束按 [设计原则与演进](architecture.md#设计原则与演进) 维护。功能和性能优先，抽象围绕稳定职责及可替换契约；文档与检查规则可随已确认的目标升级，不将现有实现固化为永久限制。
+
+ESLint 的 TypeScript 配置按 [官方加载方式](https://eslint.org/docs/latest/use/configure/configuration-files#typescript-configuration-files) 使用 `jiti`，Node 工具显式声明 `@types/node` 24；版本由 npm 清单与锁文件管理，不启用实验性加载开关。JavaScript 仅用于确有工具兼容限制的边界，需记录原因、范围和退出条件，并同步契约检查；第三方依赖与构建生成的 JavaScript 不属于手写代码限制范围。
 
 ## .NET 统一配置
 
@@ -57,6 +62,7 @@ SDK 必要的 `Microsoft.Extensions.*` 依赖沿用 10.0.12 并集中管理；SD
 ## 采用上游技能时的项目约束
 
 - `.agents/skills` 用于开发 Trelix。根目录与分模块 `AGENTS.md` 是项目开发 agent 的入口，不是技能作者或插件维护者指引。
+- 技能正文只保留开发所需的操作、边界与参考，不纳入协议说明、市场维护等无关流程。外部内容不允许当前用途时不采用；允许使用的 MIT 等内容正常使用，不增加日常开发审批。原有来源声明在技能目录外单独保留，见 [技能索引](../.agents/README.md)。
 - `csharp-lsp` 仅分发 Git 跟踪的 Windows x64 预编译 EXE 与技能文档，工具源码在独立工程维护；产物使用本机 .NET 10 SDK，不嵌入 Trelix 解决方案或依赖配置。支持按名称查找声明并衔接位置查询；版本、哈希和使用边界见 [技能说明](../.agents/skills/csharp-lsp/SKILL.md#工具路径)。
 - 上游 Vue 技能覆盖 TypeScript、Router、Pinia 和测试；按本项目已经确认与安装的能力使用，保持 Composition API。技能安装不表示采用对应依赖。
 - 上游 .NET Web API 技能允许 Controllers 与 Minimal APIs，本项目使用 Minimal APIs；字段校验使用 [ASP.NET Core 内置验证](https://learn.microsoft.com/aspnet/core/fundamentals/validation?view=aspnetcore-10.0)，防伪造中间件在认证授权、限流之后及正文绑定之前执行。EF 查询优化技能只在相关查询任务中启用。
