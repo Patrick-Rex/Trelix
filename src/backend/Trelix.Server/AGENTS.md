@@ -6,7 +6,7 @@
 
 - 采用轻量模块化单体；按 [目标项目结构](../../../docs/architecture.md#目标项目结构) 将认证、项目环境、文件草稿、发布、应用令牌与分发放入各自 `Features` 目录。`Program.cs` 只负责宿主装配，公共构建与依赖约定继承后端公共指引。
 - 使用 Minimal APIs 与内置 `AddOpenApi` / `MapOpenApi`，开发环境以 Scalar 展示 `admin` 与 `application` 两组文档；Scalar 和 OpenAPI JSON 仅在 Development 映射，访问方式见 [本地开发](../../../docs/local-development.md#api-文档)。管理 API 和应用 API 的路由、认证策略及契约分别维护。HTTP 错误使用 Problem Details，通用异常处理机制放 Core 的 `Middleware`，业务错误标识与映射在 Server 定义并装配，不返回原始异常或敏感配置。
-- SQLite + EF Core 10 的 DbContext、实体映射及迁移放入 `Persistence`；认证技术实现与通知等待管理放入 `Infrastructure`。目录划分不增加部署服务或多层转发类。
+- SQLite + EF Core 10 的 DbContext、实体、映射及迁移放入 `Infrastructure/Persistence`；认证、HTTP 响应、中间件及通知分别按职责放入 `Infrastructure` 对应目录。`Common` 放 Server 跨功能共享的规则与资源查询，功能专用契约和映射留在对应 `Features`。命名空间与目录层级保持一致；目录划分不增加部署服务或多层转发类。
 - Server 引用 Core 的通用技术能力和 ServiceDefaults 的宿主默认配置，AppHost 负责编排；业务逻辑、数据访问、认证授权与发布通知留在 Server。具体归属见 [职责边界](../../../docs/architecture.md#通用技术与业务基础设施边界)。
 
 ## 技能入口
@@ -17,7 +17,8 @@
 
 ## API 与业务代码
 
-- 各模块的静态 Endpoints 类处理 HTTP 边界，使用路由组、TypedResults 和内置 `AddValidation`；管理写请求由中间件执行防伪造，所有 API 响应禁止缓存。复杂业务由用例服务承担，用例服务可直接使用 DbContext 并控制事务，不再包装通用仓储。接口仅在替换、测试隔离或稳定契约需要时引入；模块之间通过明确服务方法协作，不调用其他模块的端点处理器。
+- 各模块的静态 Endpoints 类处理 HTTP 边界，使用路由组、TypedResults 和内置 `AddValidation`；管理写请求由中间件执行防伪造，所有 API 响应禁止缓存。复杂业务由用例服务承担，用例服务可直接使用 DbContext 并控制事务，不再包装通用仓储。接口仅在替换、测试隔离或稳定契约需要时引入；多个用例共用的资源定位按职责复用，不为校验资源而依赖其他模块的 CRUD 服务或端点处理器。
+- 配置资源共享查询使用调用方的 DbContext，不自行保存或提交事务；返回跟踪实体时由调用方管理生命周期。只读列表继续在数据库侧投影，已物化实体的响应映射可在功能模块内复用，不能将普通映射方法放进 EF 查询导致加载完整实体。
 - 请求/响应 DTO 与持久化实体分离；采用明确类型、正确状态码与可识别错误，新增端点同步维护 OpenAPI 元数据和 `.http` 调用样例。
 - 分页响应与并发标记接口由 Core 提供；管理分页参数、分页查询扩展和并发业务校验留在 Server，端点显式维护查询参数绑定及校验，业务服务保留父资源校验与稳定排序。认证查询规则按职责复用，不隐藏条件写入或实时授权检查。
 

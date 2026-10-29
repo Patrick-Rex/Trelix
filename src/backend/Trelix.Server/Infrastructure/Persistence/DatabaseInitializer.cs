@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
-namespace Trelix.Server.Persistence;
+namespace Trelix.Server.Infrastructure.Persistence;
 
 /// <summary>在接受请求前应用数据库迁移，并按外部凭证初始化唯一管理员。</summary>
 /// <param name="db">当前作用域的数据库上下文。</param>

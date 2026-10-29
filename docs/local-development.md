@@ -35,12 +35,12 @@ Server 的 User Secrets 标识已在项目中配置。首次启动前，用 IDE 
 
 空数据库可直接通过下述配置管理 API 创建项目、环境和文件，再创建对应范围的应用令牌，不需要手工植入数据库资源。
 
-EF 工具版本在 [.NET 工具清单](../.config/dotnet-tools.json) 固定，迁移位于 [Persistence/Migrations](../src/backend/Trelix.Server/Persistence/Migrations)。修改模型后，从项目根目录执行：
+EF 工具版本在 [.NET 工具清单](../.config/dotnet-tools.json) 固定，迁移位于 [Infrastructure/Persistence/Migrations](../src/backend/Trelix.Server/Infrastructure/Persistence/Migrations)。修改模型后，从项目根目录执行：
 
 ```powershell
 dotnet tool restore
 dotnet build .\src\backend\Trelix.Server\Trelix.Server.csproj --nologo -v:q -clp:ErrorsOnly
-dotnet ef migrations add "<MigrationName>" --project .\src\backend\Trelix.Server\Trelix.Server.csproj --output-dir Persistence/Migrations --no-build
+dotnet ef migrations add "<MigrationName>" --project .\src\backend\Trelix.Server\Trelix.Server.csproj --output-dir Infrastructure/Persistence/Migrations --no-build
 ```
 
 `<MigrationName>` 替换为本次迁移名。设计时工厂只用于生成模型迁移，不初始化管理员、不连接运行数据库；实际迁移在 Server 启动时执行。生成的文件仍须按技术基线检查 UTF-8 无 BOM、LF 和末尾换行。
@@ -231,6 +231,8 @@ dotnet test --project .\tests\Trelix.Server.Tests\Trelix.Server.Tests.csproj --v
 [OpenAPI 测试](../tests/Trelix.Server.Tests/OpenApiTests.cs) 验证开发环境的 Scalar 页面、本地脚本、两组 JSON 文档与 XML 契约说明，并检查 Production、Staging 不注册文档端点。
 
 M3 的 `Configuration*Tests` 从真实管理 API 创建资源，并调用正式应用读取端点验证隔离、事务、回滚及授权；旧库升级测试从初始迁移与已有发布历史开始，验证启动升级后的可用性。结果与边界见 [M3 验收记录](verification/m3.md)。
+
+[配置资源查询测试](../tests/Trelix.Server.Tests/ConfigurationResourceQueryTests.cs) 检查文件列表的父资源错误、实际 SQLite 语句和查询次数，以及创建文件时父资源校验的先后顺序。
 
 测试及其辅助方法的 HTTP、响应读取与 EF 异步调用传递 `TestContext.Current.CancellationToken`，使测试取消能够终止相关 I/O。
 

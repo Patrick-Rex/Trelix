@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Trelix.Core.Models;
-using Trelix.Server.Infrastructure;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Common.Concurrency;
+using Trelix.Server.Common.Errors;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Features.Projects;
 
@@ -26,7 +27,7 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task<ProjectResponse> GetProjectAsync(Guid projectId, CancellationToken ct) =>
         await db.Projects.Where(x => x.Id == projectId)
             .Select(x => new ProjectResponse(x.Id, x.Key, x.DisplayName, x.ConcurrencyStamp)).SingleOrDefaultAsync(ct)
-        ?? throw Missing();
+        ?? throw ResourceErrors.Missing();
 
     /// <summary>创建唯一业务标识的项目。</summary>
     /// <param name="request">项目身份与展示信息。</param>
@@ -47,7 +48,7 @@ public sealed class ProjectService(TrelixDbContext db)
     /// <returns>更新后的项目元数据。</returns>
     public async Task<ProjectResponse> UpdateProjectAsync(Guid projectId, ResourceRequest request, CancellationToken ct)
     {
-        var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == projectId, ct) ?? throw Missing();
+        var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == projectId, ct) ?? throw ResourceErrors.Missing();
         project.RequireStamp(request.ConcurrencyStamp);
         project.Key = request.Key;
         project.DisplayName = request.DisplayName;
@@ -63,7 +64,7 @@ public sealed class ProjectService(TrelixDbContext db)
     /// <returns>删除任务。</returns>
     public async Task DeleteProjectAsync(Guid projectId, Guid stamp, CancellationToken ct)
     {
-        var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == projectId, ct) ?? throw Missing();
+        var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == projectId, ct) ?? throw ResourceErrors.Missing();
         project.RequireStamp(stamp);
         if (await db.Environments.AnyAsync(x => x.ProjectId == projectId, ct))
             throw InUse();
@@ -92,7 +93,7 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task<EnvironmentResponse> GetEnvironmentAsync(Guid projectId, Guid environmentId, CancellationToken ct) =>
         await db.Environments.Where(x => x.ProjectId == projectId && x.Id == environmentId)
             .Select(x => new EnvironmentResponse(x.Id, x.ProjectId, x.Key, x.DisplayName, x.ConcurrencyStamp)).SingleOrDefaultAsync(ct)
-        ?? throw Missing();
+        ?? throw ResourceErrors.Missing();
 
     /// <summary>在现有项目中创建环境。</summary>
     /// <param name="projectId">所属项目标识。</param>
@@ -116,7 +117,7 @@ public sealed class ProjectService(TrelixDbContext db)
     /// <returns>更新后的环境。</returns>
     public async Task<EnvironmentResponse> UpdateEnvironmentAsync(Guid projectId, Guid environmentId, ResourceRequest request, CancellationToken ct)
     {
-        var environment = await db.Environments.SingleOrDefaultAsync(x => x.ProjectId == projectId && x.Id == environmentId, ct) ?? throw Missing();
+        var environment = await db.Environments.SingleOrDefaultAsync(x => x.ProjectId == projectId && x.Id == environmentId, ct) ?? throw ResourceErrors.Missing();
         environment.RequireStamp(request.ConcurrencyStamp);
         environment.Key = request.Key;
         environment.DisplayName = request.DisplayName;
@@ -133,7 +134,7 @@ public sealed class ProjectService(TrelixDbContext db)
     /// <returns>删除任务。</returns>
     public async Task DeleteEnvironmentAsync(Guid projectId, Guid environmentId, Guid stamp, CancellationToken ct)
     {
-        var environment = await db.Environments.SingleOrDefaultAsync(x => x.ProjectId == projectId && x.Id == environmentId, ct) ?? throw Missing();
+        var environment = await db.Environments.SingleOrDefaultAsync(x => x.ProjectId == projectId && x.Id == environmentId, ct) ?? throw ResourceErrors.Missing();
         environment.RequireStamp(stamp);
         if (await db.ConfigFiles.AnyAsync(x => x.EnvironmentId == environmentId, ct)
             || await db.TokenScopes.AnyAsync(x => x.EnvironmentId == environmentId, ct))
@@ -141,10 +142,6 @@ public sealed class ProjectService(TrelixDbContext db)
         db.Environments.Remove(environment);
         await db.SaveChangesAsync(ct);
     }
-
-    /// <summary>创建不暴露请求输入的资源缺失错误。</summary>
-    /// <returns>资源不存在错误。</returns>
-    private static ApiOperationException Missing() => new(404, "resource_not_found", "资源不存在或不属于指定父资源。");
 
     /// <summary>创建有关联资源时的删除冲突错误。</summary>
     /// <returns>资源仍被引用的冲突错误。</returns>

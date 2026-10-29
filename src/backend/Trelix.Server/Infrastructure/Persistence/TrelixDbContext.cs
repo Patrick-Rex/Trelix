@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Trelix.Core.Abstractions;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
-namespace Trelix.Server.Persistence;
+namespace Trelix.Server.Infrastructure.Persistence;
 
 /// <summary>维护配置、发布历史及认证数据，并在保存前保护历史和刷新并发标记。</summary>
 /// <param name="options">数据库上下文配置。</param>

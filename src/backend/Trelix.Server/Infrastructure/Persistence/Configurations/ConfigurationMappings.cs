@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
-namespace Trelix.Server.Persistence.Configurations;
+namespace Trelix.Server.Infrastructure.Persistence.Configurations;
 
 /// <summary>配置项目标识唯一性和显示字段长度。</summary>
 public sealed class ProjectMapping : IEntityTypeConfiguration<Project>

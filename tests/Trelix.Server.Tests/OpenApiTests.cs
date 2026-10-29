@@ -47,6 +47,12 @@ public sealed class OpenApiTests
         Assert.Contains("管理员登录凭证", login.GetProperty("description").GetString());
         var application = await client.GetFromJsonAsync<JsonElement>("/openapi/application.json", cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(application.GetProperty("paths").TryGetProperty("/api/application/configuration", out _));
+        var schemas = application.GetProperty("components").GetProperty("schemas");
+        var snapshot = schemas.GetProperty("PublishedConfigResponse");
+        Assert.Equal("应用读取的一份已发布快照，正文与身份来自同一发布记录。", snapshot.GetProperty("description").GetString());
+        Assert.Equal("已发布的 JSON 原文。", snapshot.GetProperty("properties").GetProperty("json").GetProperty("description").GetString());
+        var identity = schemas.GetProperty("PublishedIdentityResponse");
+        Assert.Equal("当前发布的不可变身份，不包含配置正文。", identity.GetProperty("description").GetString());
         var watch = application.GetProperty("paths").GetProperty("/api/application/configuration/watch").GetProperty("get");
         Assert.True(watch.GetProperty("responses").TryGetProperty("204", out _));
         Assert.True(watch.GetProperty("responses").TryGetProperty("503", out _));

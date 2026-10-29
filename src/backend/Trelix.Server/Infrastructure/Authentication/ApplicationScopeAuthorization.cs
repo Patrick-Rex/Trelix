@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Trelix.Server.Persistence;
+using Trelix.Server.Infrastructure.Persistence;
 
 namespace Trelix.Server.Infrastructure.Authentication;
 

@@ -1,21 +1,21 @@
 using Microsoft.EntityFrameworkCore;
 using Trelix.Core.Models;
+using Trelix.Server.Common.Concurrency;
+using Trelix.Server.Common.Configuration;
+using Trelix.Server.Common.Errors;
 using Trelix.Server.Features.ConfigFiles;
-using Trelix.Server.Features.Projects;
-using Trelix.Server.Infrastructure;
 using Trelix.Server.Infrastructure.Notifications;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Features.Releases;
 
 /// <summary>负责不可变发布历史与受并发保护的发布事务。</summary>
 /// <param name="db">当前请求数据库上下文。</param>
-/// <param name="files">文件层级校验服务。</param>
 /// <param name="time">UTC 时间来源。</param>
 /// <param name="notifications">提交后的发布唤醒服务。</param>
 /// <param name="logger">不包含正文的通知故障诊断。</param>
-public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, TimeProvider time,
+public sealed class ReleaseService(TrelixDbContext db, TimeProvider time,
     IReleaseNotifications notifications, ILogger<ReleaseService> logger)
 {
     /// <summary>分页查询指定文件的历史元数据，不加载历史正文。</summary>
@@ -29,7 +29,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
     public async Task<PageResponse<ReleaseResponse>> ListAsync(Guid projectId, Guid environmentId, Guid fileId,
         int page, int pageSize, CancellationToken ct)
     {
-        await files.FindAsync(projectId, environmentId, fileId, ct);
+        await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         return await db.Releases.Where(x => x.ConfigFileId == fileId).OrderByDescending(x => x.Version)
             .Select(x => new ReleaseResponse(x.ConfigFileId, x.Version, x.DraftRevision, x.SourceVersion, x.PublishedAt))
             .ToPageAsync(page, pageSize, ct);
@@ -44,7 +44,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
     /// <returns>完整历史快照。</returns>
     public async Task<ReleaseDetailResponse> GetAsync(Guid projectId, Guid environmentId, Guid fileId, long version, CancellationToken ct)
     {
-        await files.FindAsync(projectId, environmentId, fileId, ct);
+        await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         return await db.Releases.Where(x => x.ConfigFileId == fileId && x.Version == version)
             .Select(x => new ReleaseDetailResponse(new ReleaseResponse(x.ConfigFileId, x.Version, x.DraftRevision, x.SourceVersion, x.PublishedAt), x.Json))
             .SingleOrDefaultAsync(ct) ?? throw new ApiOperationException(404, "release_not_found", "历史发布版本不存在。");
@@ -59,7 +59,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
     /// <returns>已提交的新版本和文件状态。</returns>
     public async Task<PublicationResponse> PublishAsync(Guid projectId, Guid environmentId, Guid fileId, PublishRequest request, CancellationToken ct)
     {
-        var file = await files.FindAsync(projectId, environmentId, fileId, ct);
+        var file = await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         file.RequireStamp(request.ConcurrencyStamp);
         if (file.DraftJson is null)
             throw new ApiOperationException(409, "draft_missing", "文件尚无可发布的草稿。");
@@ -78,7 +78,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
     /// <returns>新发布版本和文件状态。</returns>
     public async Task<PublicationResponse> RollbackAsync(Guid projectId, Guid environmentId, Guid fileId, RollbackRequest request, CancellationToken ct)
     {
-        var file = await files.FindAsync(projectId, environmentId, fileId, ct);
+        var file = await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         file.RequireStamp(request.ConcurrencyStamp);
         var source = await db.Releases.AsNoTracking().SingleOrDefaultAsync(x => x.ConfigFileId == fileId && x.Version == request.SourceVersion, ct)
             ?? throw new ApiOperationException(404, "release_not_found", "历史发布版本不存在。");
@@ -121,7 +121,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
             // 发布已经提交，不能以通知故障把成功写入伪装成失败，也不记录异常正文。
             logger.LogWarning("发布已经提交，但监听唤醒失败；客户端将在下次持久化核对时发现更新。");
         }
-        return new(ConfigFileService.ToResponse(file),
+        return new(file.ToResponse(),
             new ReleaseResponse(file.Id, release.Version, revision, sourceVersion, release.PublishedAt));
     }
 }

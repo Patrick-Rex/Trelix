@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Trelix.Server.Infrastructure.Authentication;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Features.Authentication;
 

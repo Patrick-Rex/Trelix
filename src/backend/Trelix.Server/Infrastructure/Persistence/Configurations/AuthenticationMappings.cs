@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
-namespace Trelix.Server.Persistence.Configurations;
+namespace Trelix.Server.Infrastructure.Persistence.Configurations;
 
 /// <summary>配置唯一内置管理员的主键、单例约束与安全戳并发检查。</summary>
 public sealed class AdministratorMapping : IEntityTypeConfiguration<Administrator>

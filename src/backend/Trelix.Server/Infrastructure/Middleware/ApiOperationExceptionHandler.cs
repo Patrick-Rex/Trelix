@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Data.Sqlite;
+using Trelix.Server.Common.Errors;
 
 namespace Trelix.Server.Infrastructure.Middleware;
 

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Trelix.Server.Infrastructure;
+namespace Trelix.Server.Infrastructure.Http;
 
 /// <summary>统一生成带业务错误码和追踪标识的 Problem Details。</summary>
 public static class ApiErrors

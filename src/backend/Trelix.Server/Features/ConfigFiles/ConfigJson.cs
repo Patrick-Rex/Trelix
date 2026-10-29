@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using Trelix.Server.Infrastructure;
+using Trelix.Server.Common.Errors;
 
 namespace Trelix.Server.Features.ConfigFiles;
 

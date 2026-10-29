@@ -4,7 +4,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Trelix.Server.Persistence;
+using Trelix.Server.Infrastructure.Persistence;
 
 namespace Trelix.Server.Infrastructure.Authentication;
 

@@ -1,6 +1,6 @@
 using Trelix.Core.Abstractions;
 
-namespace Trelix.Server.Persistence.Entities;
+namespace Trelix.Server.Infrastructure.Persistence.Entities;
 
 /// <summary>配置资源的顶层项目，使用唯一业务标识区分。</summary>
 public sealed class Project : IConcurrencyStamped

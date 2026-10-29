@@ -7,7 +7,7 @@ using Trelix.Server.Features.Projects;
 using Trelix.Server.Features.ConfigFiles;
 using Trelix.Server.Features.Releases;
 using Trelix.Server.Features.Distribution;
-using Trelix.Server.Persistence;
+using Trelix.Server.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();

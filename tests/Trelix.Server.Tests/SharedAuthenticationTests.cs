@@ -9,10 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
-using Trelix.Server.Infrastructure;
+using Trelix.Server.Infrastructure.Http;
 using Trelix.Server.Infrastructure.Authentication;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Tests;
 

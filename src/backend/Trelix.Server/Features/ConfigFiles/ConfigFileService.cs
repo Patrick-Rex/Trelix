@@ -1,16 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Trelix.Core.Models;
-using Trelix.Server.Features.Projects;
-using Trelix.Server.Infrastructure;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Common.Concurrency;
+using Trelix.Server.Common.Configuration;
+using Trelix.Server.Common.Errors;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Features.ConfigFiles;
 
 /// <summary>维护文件身份、草稿隔离以及受并发保护的整文件删除。</summary>
 /// <param name="db">当前请求数据库上下文。</param>
-/// <param name="projects">项目环境层级校验服务。</param>
-public sealed class ConfigFileService(TrelixDbContext db, ProjectService projects)
+public sealed class ConfigFileService(TrelixDbContext db)
 {
     /// <summary>按文件名稳定分页读取元数据，不加载配置正文。</summary>
     /// <param name="projectId">项目标识。</param>
@@ -21,7 +21,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     /// <returns>文件分页结果。</returns>
     public async Task<PageResponse<ConfigFileResponse>> ListAsync(Guid projectId, Guid environmentId, int page, int pageSize, CancellationToken ct)
     {
-        await projects.GetEnvironmentAsync(projectId, environmentId, ct);
+        await db.RequireEnvironmentAsync(projectId, environmentId, ct);
         return await db.ConfigFiles.Where(x => x.EnvironmentId == environmentId).OrderBy(x => x.Name).ThenBy(x => x.Id)
             .Select(x => new ConfigFileResponse(x.Id, x.EnvironmentId, x.Name, x.DraftRevision, x.CurrentReleaseVersion, x.ConcurrencyStamp))
             .ToPageAsync(page, pageSize, ct);
@@ -35,8 +35,8 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     /// <returns>文件与草稿快照。</returns>
     public async Task<DraftResponse> GetAsync(Guid projectId, Guid environmentId, Guid fileId, CancellationToken ct)
     {
-        var file = await FindAsync(projectId, environmentId, fileId, ct);
-        return new(ToResponse(file), file.DraftJson);
+        var file = await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
+        return new(file.ToResponse(), file.DraftJson);
     }
 
     /// <summary>在指定环境原子创建文件及可选初始草稿，不创建发布历史。</summary>
@@ -47,7 +47,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     /// <returns>新文件元数据。</returns>
     public async Task<ConfigFileResponse> CreateAsync(Guid projectId, Guid environmentId, CreateConfigFileRequest request, CancellationToken ct)
     {
-        await projects.GetEnvironmentAsync(projectId, environmentId, ct);
+        await db.RequireEnvironmentAsync(projectId, environmentId, ct);
         if (request.Json is not null)
             ConfigJson.Validate(request.Json);
         var file = new ConfigFile
@@ -57,7 +57,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
         };
         db.ConfigFiles.Add(file);
         await db.SaveChangesAsync(ct);
-        return ToResponse(file);
+        return file.ToResponse();
     }
 
     /// <summary>按并发基准重命名文件，保留所有配置状态。</summary>
@@ -69,12 +69,12 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     /// <returns>更新后的文件元数据。</returns>
     public async Task<ConfigFileResponse> RenameAsync(Guid projectId, Guid environmentId, Guid fileId, RenameConfigFileRequest request, CancellationToken ct)
     {
-        var file = await FindAsync(projectId, environmentId, fileId, ct);
+        var file = await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         file.RequireStamp(request.ConcurrencyStamp);
         file.Name = request.Name;
         db.Entry(file).Property(x => x.ConcurrencyStamp).IsModified = true;
         await db.SaveChangesAsync(ct);
-        return ToResponse(file);
+        return file.ToResponse();
     }
 
     /// <summary>保存新的草稿修订，不修改当前发布指向。</summary>
@@ -87,14 +87,14 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     public async Task<DraftResponse> SaveDraftAsync(Guid projectId, Guid environmentId, Guid fileId, SaveDraftRequest request, CancellationToken ct)
     {
         ConfigJson.Validate(request.Json);
-        var file = await FindAsync(projectId, environmentId, fileId, ct);
+        var file = await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         file.RequireStamp(request.ConcurrencyStamp);
         if (file.DraftRevision == long.MaxValue)
             throw new ApiOperationException(409, "revision_exhausted", "草稿修订已达到可用范围上限。");
         file.DraftJson = request.Json;
         file.DraftRevision++;
         await db.SaveChangesAsync(ct);
-        return new(ToResponse(file), file.DraftJson);
+        return new(file.ToResponse(), file.DraftJson);
     }
 
     /// <summary>在同一事务中解除当前指向并删除全部历史、草稿和文件。</summary>
@@ -106,7 +106,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     /// <returns>删除任务。</returns>
     public async Task DeleteAsync(Guid projectId, Guid environmentId, Guid fileId, Guid stamp, CancellationToken ct)
     {
-        var file = await FindAsync(projectId, environmentId, fileId, ct);
+        var file = await db.FindConfigFileAsync(projectId, environmentId, fileId, ct);
         file.RequireStamp(stamp);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         file.CurrentReleaseVersion = null;
@@ -118,23 +118,4 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
         await db.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
     }
-
-    /// <summary>通过完整资源层级定位供写操作使用的文件。</summary>
-    /// <param name="projectId">项目标识。</param>
-    /// <param name="environmentId">环境标识。</param>
-    /// <param name="fileId">文件标识。</param>
-    /// <param name="ct">取消令牌。</param>
-    /// <returns>跟踪的文件实体，仅供 Server 用例协作。</returns>
-    internal async Task<ConfigFile> FindAsync(Guid projectId, Guid environmentId, Guid fileId, CancellationToken ct) =>
-        await (from file in db.ConfigFiles
-               join environment in db.Environments on file.EnvironmentId equals environment.Id
-               where file.Id == fileId && environment.Id == environmentId && environment.ProjectId == projectId
-               select file).SingleOrDefaultAsync(ct)
-        ?? throw new ApiOperationException(404, "file_not_found", "配置文件不存在或不属于指定项目环境。");
-
-    /// <summary>将持久化文件映射为不含正文的响应。</summary>
-    /// <param name="file">待映射文件。</param>
-    /// <returns>文件元数据。</returns>
-    internal static ConfigFileResponse ToResponse(ConfigFile file) =>
-        new(file.Id, file.EnvironmentId, file.Name, file.DraftRevision, file.CurrentReleaseVersion, file.ConcurrencyStamp);
 }

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using Trelix.Server.Common.Errors;
 using Trelix.Server.Features.Distribution;
 
 namespace Trelix.Server.Infrastructure.Notifications;

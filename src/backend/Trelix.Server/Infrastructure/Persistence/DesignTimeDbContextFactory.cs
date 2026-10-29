@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Trelix.Server.Persistence;
+namespace Trelix.Server.Infrastructure.Persistence;
 
 // Migration generation does not initialize an administrator or touch the runtime database.
 /// <summary>为 EF 迁移生成提供独立模型上下文，不初始化运行数据库或管理员。</summary>

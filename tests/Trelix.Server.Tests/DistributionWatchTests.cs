@@ -12,8 +12,8 @@ using Trelix.Server.Features.Distribution;
 using Trelix.Server.Features.Projects;
 using Trelix.Server.Features.Releases;
 using Trelix.Server.Infrastructure.Notifications;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 using static Trelix.Server.Tests.ConfigurationApiFixture;
 
 namespace Trelix.Server.Tests;

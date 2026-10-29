@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 
-namespace Trelix.Server.Persistence;
+namespace Trelix.Server.Infrastructure.Persistence;
 
 /// <summary>解析持久化目录并提供启用外键约束的 SQLite 连接配置。</summary>
 public sealed class StorageSettings

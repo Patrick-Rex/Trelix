@@ -9,7 +9,7 @@ using Trelix.Server.Features.ConfigFiles;
 using Trelix.Server.Features.Distribution;
 using Trelix.Server.Features.Projects;
 using Trelix.Server.Features.Releases;
-using Trelix.Server.Persistence;
+using Trelix.Server.Infrastructure.Persistence;
 using static Trelix.Server.Tests.ConfigurationApiFixture;
 
 namespace Trelix.Server.Tests;

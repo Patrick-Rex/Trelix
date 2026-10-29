@@ -1,4 +1,4 @@
-namespace Trelix.Server.Infrastructure;
+namespace Trelix.Server.Common.Errors;
 
 // Only explicitly authored, safe public messages belong here; never wrap exception.Message.
 /// <summary>携带可公开的状态码、业务错误码和提示；不得包装原始异常正文。</summary>

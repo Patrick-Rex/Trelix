@@ -7,7 +7,7 @@
 | 领域 | 基线 | 版本来源或约束 |
 | --- | --- | --- |
 | 文本文件格式 | UTF-8 无 BOM、LF、文件末尾换行；`.bat` / `.cmd` 使用 CRLF | [.editorconfig](../.editorconfig)、[.gitattributes](../.gitattributes)；修改后检查实际格式，不代表存量文件全部标准化 |
-| 项目架构 | 轻量模块化单体；Server 保留业务并按模块分目录，Core 承担通用技术基础设施，SDK 独立 | 前端、Server、Core、ServiceDefaults、AppHost、SDK、测试、示例及部署资产按 [目标项目结构](architecture.md#目标项目结构) 组织；Server 不再拆分分层类库 |
+| 项目架构 | 轻量模块化单体；Server 保留业务并按模块分目录，Core 承担通用技术基础设施，SDK 独立 | 前端、Server、Core、ServiceDefaults、AppHost、SDK、测试、示例及部署资产按 [目标项目结构](architecture.md#目标项目结构) 组织；Server 的业务、共享规则和基础设施按职责归属，命名空间与目录一致，不再拆分分层类库 |
 | 通用技术基础设施 | Core 承担通用分页结果、并发能力契约、异常处理、中间件、序列化辅助和技术组件注册扩展 | Core 不依赖 EF Core；已接入不输出异常正文的通用异常处理器；按 [职责边界](architecture.md#通用技术与业务基础设施边界) 增加实际需要的能力，业务持久化、认证授权与发布通知留在 Server，SDK 不依赖 Core |
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |

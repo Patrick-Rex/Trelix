@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Trelix.Core.Models;
 
-namespace Trelix.Server.Persistence;
+namespace Trelix.Server.Infrastructure.Persistence;
 
 /// <summary>为已完成过滤、稳定排序与投影的数据库查询提供分页。</summary>
 public static class PaginationQueryExtensions

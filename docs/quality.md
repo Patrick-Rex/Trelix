@@ -19,6 +19,7 @@
 - 统一依赖与 SDK 配置覆盖实际项目；本地启动文档中的项目路径和 Profile 存在。
 - 项目遵守目标目录与依赖方向：Server 为单部署宿主并引用 Core、ServiceDefaults；Core 不引用 Server、ServiceDefaults、AppHost 或 SDK；SDK 不引用 Server、Core、ServiceDefaults 或 EF Core，生产项目不引用测试和示例。
 - 按 [职责边界](architecture.md#通用技术与业务基础设施边界) 核对代码归属：Core 不含业务类型、DbContext、迁移、权限规则或配置发布通知；Server 按业务模块组织，ServiceDefaults 维护宿主默认配置，通用能力与遥测注册不重复实现。
+- Server 的公共规则、业务模块与基础设施按职责归属；核对命名空间和目录一致，持久化迁移路径及设计时命令可用，资源定位不要求调用其他模块的 CRUD 服务。
 - AppHost 实际启动前后端，面板链接、HTTPS 和 API 代理可用。
 - Development 的 Scalar 页面及脚本可加载，管理与应用两组 OpenAPI 文档可访问；Production、Staging 不注册 Scalar 或 OpenAPI 文档端点。
 - 自有前端代码、配置与脚本采用 ESM TypeScript，浏览器和 Node 类型检查均能发现错误；模块、Vue script 类型及主题契约检查接入构建，生产打包不替代类型检查。
@@ -44,6 +45,7 @@
 - 数据库保障项目身份、项目内环境身份、环境内文件名和文件内发布版本的唯一性；当前发布指向、资源层级及令牌授权关联不能跨资源混用。
 - 读写与事务行为使用 SQLite 验证，不能仅凭内存替身推断数据库行为。
 - 管理列表验证默认值、合法及非法分页边界、稳定排序和空页；检查父资源错误、响应字段及 OpenAPI 兼容，确认 SQLite 查询在数据库侧限制结果。
+- 文件列表与创建验证项目和环境的归属、父资源错误及校验顺序；检查实际 SQLite 查询，确认父资源存在性检查和列表读取的次数与范围符合用例。
 
 ## AC-04 配置发布
 

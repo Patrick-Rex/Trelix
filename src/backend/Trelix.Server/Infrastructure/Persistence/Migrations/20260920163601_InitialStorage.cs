@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Trelix.Server.Persistence.Migrations
+namespace Trelix.Server.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialStorage : Migration

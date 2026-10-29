@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Trelix.Core.Models;
 using Trelix.Core.Middleware;
+using Trelix.Server.Infrastructure.Http;
 using Trelix.Server.Features.Authentication;
 using Trelix.Server.Features.ApplicationTokens;
 using Trelix.Server.Features.Projects;
@@ -20,8 +21,8 @@ using Trelix.Server.Features.Distribution;
 using Trelix.Server.Infrastructure.Authentication;
 using Trelix.Server.Infrastructure.Middleware;
 using Trelix.Server.Infrastructure.Notifications;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Infrastructure;
 

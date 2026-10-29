@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Trelix.Server.Persistence;
+using Trelix.Server.Infrastructure.Persistence;
 
 #nullable disable
 
-namespace Trelix.Server.Persistence.Migrations
+namespace Trelix.Server.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TrelixDbContext))]
     [Migration("20260920163601_InitialStorage")]
@@ -20,7 +20,7 @@ namespace Trelix.Server.Persistence.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.12");
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.Administrator", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.Administrator", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("INTEGER");
@@ -45,7 +45,7 @@ namespace Trelix.Server.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.AdministratorSession", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.AdministratorSession", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -69,7 +69,7 @@ namespace Trelix.Server.Persistence.Migrations
                     b.ToTable("AdministratorSessions");
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.ApplicationToken", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.ApplicationToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -109,7 +109,7 @@ namespace Trelix.Server.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.ConfigFile", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.ConfigFile", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -148,7 +148,7 @@ namespace Trelix.Server.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.Project", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.Project", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -172,7 +172,7 @@ namespace Trelix.Server.Persistence.Migrations
                     b.ToTable("Projects");
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.ProjectEnvironment", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.ProjectEnvironment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -199,7 +199,7 @@ namespace Trelix.Server.Persistence.Migrations
                     b.ToTable("Environments");
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.Release", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.Release", b =>
                 {
                     b.Property<Guid>("ConfigFileId")
                         .HasColumnType("TEXT");
@@ -236,7 +236,7 @@ namespace Trelix.Server.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.TokenScope", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.TokenScope", b =>
                 {
                     b.Property<Guid>("ApplicationTokenId")
                         .HasColumnType("TEXT");
@@ -251,68 +251,68 @@ namespace Trelix.Server.Persistence.Migrations
                     b.ToTable("TokenScopes");
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.AdministratorSession", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.AdministratorSession", b =>
                 {
-                    b.HasOne("Trelix.Server.Persistence.Entities.Administrator", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.Administrator", null)
                         .WithMany()
                         .HasForeignKey("AdministratorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.ConfigFile", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.ConfigFile", b =>
                 {
-                    b.HasOne("Trelix.Server.Persistence.Entities.ProjectEnvironment", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.ProjectEnvironment", null)
                         .WithMany()
                         .HasForeignKey("EnvironmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Trelix.Server.Persistence.Entities.Release", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.Release", null)
                         .WithMany()
                         .HasForeignKey("Id", "CurrentReleaseVersion")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.ProjectEnvironment", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.ProjectEnvironment", b =>
                 {
-                    b.HasOne("Trelix.Server.Persistence.Entities.Project", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.Release", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.Release", b =>
                 {
-                    b.HasOne("Trelix.Server.Persistence.Entities.ConfigFile", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.ConfigFile", null)
                         .WithMany()
                         .HasForeignKey("ConfigFileId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Trelix.Server.Persistence.Entities.Release", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.Release", null)
                         .WithMany()
                         .HasForeignKey("ConfigFileId", "SourceVersion")
                         .OnDelete(DeleteBehavior.Restrict);
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.TokenScope", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.TokenScope", b =>
                 {
-                    b.HasOne("Trelix.Server.Persistence.Entities.ApplicationToken", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.ApplicationToken", null)
                         .WithMany("Scopes")
                         .HasForeignKey("ApplicationTokenId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Trelix.Server.Persistence.Entities.ProjectEnvironment", null)
+                    b.HasOne("Trelix.Server.Infrastructure.Persistence.Entities.ProjectEnvironment", null)
                         .WithMany()
                         .HasForeignKey("EnvironmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Trelix.Server.Persistence.Entities.ApplicationToken", b =>
+            modelBuilder.Entity("Trelix.Server.Infrastructure.Persistence.Entities.ApplicationToken", b =>
                 {
                     b.Navigation("Scopes");
                 });

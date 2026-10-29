@@ -1,6 +1,7 @@
 using Trelix.Core.Abstractions;
+using Trelix.Server.Common.Errors;
 
-namespace Trelix.Server.Infrastructure;
+namespace Trelix.Server.Common.Concurrency;
 
 /// <summary>校验客户端与持久化资源之间的并发基准。</summary>
 public static class ConcurrencyExtensions

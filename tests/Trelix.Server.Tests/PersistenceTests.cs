@@ -7,8 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Trelix.Server.Features.ApplicationTokens;
 using Trelix.Server.Features.Authentication;
 using Trelix.Server.Infrastructure.Authentication;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Tests;
 

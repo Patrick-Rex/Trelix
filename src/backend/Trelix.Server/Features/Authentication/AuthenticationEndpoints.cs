@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Trelix.Server.Infrastructure;
+using Trelix.Server.Infrastructure.Http;
 using Trelix.Server.Infrastructure.Authentication;
 
 namespace Trelix.Server.Features.Authentication;

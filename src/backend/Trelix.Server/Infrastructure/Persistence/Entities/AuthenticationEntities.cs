@@ -1,6 +1,6 @@
 using Trelix.Core.Abstractions;
 
-namespace Trelix.Server.Persistence.Entities;
+namespace Trelix.Server.Infrastructure.Persistence.Entities;
 
 /// <summary>唯一内置管理员的密码哈希与会话安全戳。</summary>
 public sealed class Administrator

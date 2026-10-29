@@ -25,7 +25,11 @@ Trelix/
 ├── src/
 │   ├── backend/
 │   │   ├── Trelix.Server/
-│   │   │   ├── Common/                   管理 API 跨模块共享规则
+│   │   │   ├── Common/                    Server 跨模块共享规则与资源查询
+│   │   │   │   ├── Concurrency/           并发基准校验
+│   │   │   │   ├── Configuration/         配置资源层级查询
+│   │   │   │   ├── Errors/                用例安全错误契约
+│   │   │   │   └── Pagination/            管理分页参数规则
 │   │   │   ├── Features/
 │   │   │   │   ├── Authentication/        管理员初始化、会话与身份校验
 │   │   │   │   ├── Projects/              项目与环境管理
@@ -33,14 +37,17 @@ Trelix/
 │   │   │   │   ├── Releases/              发布、历史版本与回滚
 │   │   │   │   ├── ApplicationTokens/     应用令牌生命周期和授权范围
 │   │   │   │   └── Distribution/          已发布配置读取与长轮询
-│   │   │   ├── Persistence/
-│   │   │   │   ├── Entities/              持久化实体
-│   │   │   │   ├── Configurations/        EF 映射、索引与约束
-│   │   │   │   ├── Migrations/            SQLite 数据库迁移
-│   │   │   │   └── TrelixDbContext.cs
 │   │   │   ├── Infrastructure/
 │   │   │   │   ├── Authentication/        Cookie、令牌认证与授权策略
-│   │   │   │   └── Notifications/         单实例内的变更通知与等待管理
+│   │   │   │   ├── Http/                  Problem Details 响应
+│   │   │   │   ├── Middleware/            Server 请求管线与异常处理
+│   │   │   │   ├── Notifications/         单实例内的变更通知与等待管理
+│   │   │   │   ├── Persistence/
+│   │   │   │   │   ├── Entities/          持久化实体
+│   │   │   │   │   ├── Configurations/    EF 映射、索引与约束
+│   │   │   │   │   ├── Migrations/        SQLite 数据库迁移
+│   │   │   │   │   └── TrelixDbContext.cs
+│   │   │   │   └── ServerServices.cs      Server 依赖装配
 │   │   │   └── Program.cs                 宿主装配与中间件入口
 │   │   ├── Trelix.Core/
 │   │   │   ├── Abstractions/             通用能力接口
@@ -161,7 +168,7 @@ flowchart LR
 | 通用异常捕获、Problem Details 输出机制 | Core 提供机制；业务错误标识及业务错误到 HTTP 的映射由 Server 定义并装配，Core 不引用业务异常类型 |
 | 通用序列化辅助 | Core；配置正文的有效性、草稿修订和发布约束仍由 Server 的相关业务模块校验 |
 | 分页与并发契约 | Core 提供分页结果与并发标记接口；Server 维护分页参数、EF 查询及并发业务校验 |
-| 配置中心持久化 | Server 的 Persistence；实体、DbContext、映射及迁移共同维护业务数据模型 |
+| 配置中心持久化 | Server 的 Infrastructure/Persistence；实体、DbContext、映射及迁移共同维护业务数据模型 |
 | 管理员与应用令牌认证授权 | Server；凭证生命周期、项目与环境授权范围属于业务规则 |
 | 发布通知与长轮询等待管理 | Server 的 Infrastructure/Notifications；按配置文件隔离，遵循提交后通知和持久化版本核对规则 |
 | 遥测、健康检查、服务发现与 HTTP 弹性 | ServiceDefaults；Core 不重复提供这些宿主默认注册 |
@@ -169,6 +176,10 @@ flowchart LR
 Core 只随实际功能增加通用能力，不预建通用框架，不包装已有平台 API 以填充目录。业务功能及其专用基础设施在 Server 内维护，SDK 保持独立的客户端依赖边界。
 
 Core 按技术职责组织同级目录：通用数据模型放 `Models`，能力接口放 `Abstractions`，中间件放 `Middleware`；序列化和扩展能力分别按需放入 `Serialization` 与 `Extensions`。各目录可容纳多项相关能力，只有实际需要时才创建目录和实现，避免为单个小功能建立顶级目录；命名空间与目录层级保持一致。
+
+Server 的 `Features` 按业务能力组织端点、用例、契约与模块专用映射；`Common` 维护多个功能共用的 Server 规则与配置资源层级查询；`Infrastructure` 实现持久化、认证、HTTP 错误输出、管线和通知。命名空间与目录层级保持一致。模块目录不代表独立部署单元或已经确定的 DDD 限界上下文。
+
+用例可直接使用 DbContext 查询和控制事务。共享资源查询复用明确的层级校验，在调用方的上下文中返回所需结果或跟踪实体，不替用例提交；文件列表和创建只检查环境是否属于项目。只读 DTO 在数据库查询中直接投影，已物化文件的响应映射在文件模块复用。不存在需要隔离的领域契约时不机械包装通用仓储，也不为每个用例或方法增加转发层。
 
 ## 业务模块与用例
 

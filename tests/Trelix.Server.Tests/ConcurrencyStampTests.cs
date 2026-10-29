@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Trelix.Server.Infrastructure.Authentication;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Tests;
 

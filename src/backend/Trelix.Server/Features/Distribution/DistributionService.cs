@@ -3,25 +3,13 @@ using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Trelix.Server.Infrastructure;
+using Trelix.Server.Common.Errors;
 using Trelix.Server.Infrastructure.Authentication;
 using Trelix.Server.Infrastructure.Notifications;
-using Trelix.Server.Persistence;
-using Trelix.Server.Persistence.Entities;
+using Trelix.Server.Infrastructure.Persistence;
+using Trelix.Server.Infrastructure.Persistence.Entities;
 
 namespace Trelix.Server.Features.Distribution;
-
-/// <summary>应用读取的一份已发布快照，正文与身份来自同一发布记录。</summary>
-/// <param name="ConfigFileId">文件稳定标识，删除后同名重建不会复用。</param>
-/// <param name="Version">该文件的发布版本号。</param>
-/// <param name="PublishedAt">UTC 发布时间。</param>
-/// <param name="Json">已发布的 JSON 原文。</param>
-public sealed record PublishedConfigResponse(Guid ConfigFileId, long Version, DateTimeOffset PublishedAt, string Json);
-
-/// <summary>当前发布的不可变身份，不包含配置正文。</summary>
-/// <param name="ConfigFileId">文件稳定标识。</param>
-/// <param name="Version">该文件的发布版本号。</param>
-public sealed record PublishedIdentityResponse(Guid ConfigFileId, long Version);
 
 /// <summary>解析资源名称并实时授权，只从当前发布记录投影应用配置。</summary>
 /// <param name="scopes">短数据库作用域工厂。</param>
