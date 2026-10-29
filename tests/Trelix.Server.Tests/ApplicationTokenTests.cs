@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Models;
 using Trelix.Server.Features.ApplicationTokens;
 using Trelix.Server.Infrastructure.Authentication;
 
@@ -67,7 +68,7 @@ public sealed class ApplicationTokenTests
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         var responseBodies = await get.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken) + await list.Content.ReadAsStringAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(!responseBodies.Contains(issued.Secret) && !responseBodies.Contains(hash));
-        Assert.Single((await list.Content.ReadFromJsonAsync<ApplicationTokenListResponse>(cancellationToken: TestContext.Current.CancellationToken))!.Items);
+        Assert.Single((await list.Content.ReadFromJsonAsync<PageResponse<ApplicationTokenResponse>>(cancellationToken: TestContext.Current.CancellationToken))!.Items);
         using var consumer = app.NewClient(false);
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, issued.Secret, resources.First.Id, resources.FirstEnv.Id));
         Assert.Equal(HttpStatusCode.NoContent, await ProbeAsync(consumer, issued.Secret, resources.Second.Id, resources.SecondEnv.Id));

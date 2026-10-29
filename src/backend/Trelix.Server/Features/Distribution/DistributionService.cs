@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -6,6 +7,7 @@ using Trelix.Server.Infrastructure;
 using Trelix.Server.Infrastructure.Authentication;
 using Trelix.Server.Infrastructure.Notifications;
 using Trelix.Server.Persistence;
+using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Features.Distribution;
 
@@ -30,6 +32,11 @@ public sealed record PublishedIdentityResponse(Guid ConfigFileId, long Version);
 public sealed class DistributionService(IServiceScopeFactory scopes, IReleaseNotifications notifications,
     IOptions<DistributionOptions> options, TimeProvider time, IHostApplicationLifetime lifetime)
 {
+    private static readonly Expression<Func<Release, PublishedConfigResponse>> SnapshotProjection =
+        release => new PublishedConfigResponse(release.ConfigFileId, release.Version, release.PublishedAt, release.Json);
+    private static readonly Expression<Func<Release, PublishedIdentityResponse>> IdentityProjection =
+        release => new PublishedIdentityResponse(release.ConfigFileId, release.Version);
+
     /// <summary>读取所选文件的当前已发布内容，绝不返回草稿。</summary>
     /// <param name="user">已通过应用令牌认证的身份。</param>
     /// <param name="projectKey">项目业务标识。</param>
@@ -37,19 +44,8 @@ public sealed class DistributionService(IServiceScopeFactory scopes, IReleaseNot
     /// <param name="fileName">文件名。</param>
     /// <param name="ct">请求取消令牌。</param>
     /// <returns>正文与身份一致的发布快照。</returns>
-    public async Task<PublishedConfigResponse> ReadAsync(ClaimsPrincipal user, string projectKey, string environmentKey, string fileName, CancellationToken ct)
-    {
-        await using var scope = scopes.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<TrelixDbContext>();
-        var resource = await ResolveAsync(scope.ServiceProvider, db, user, projectKey, environmentKey, ct);
-        return await (from file in db.ConfigFiles
-                      join release in db.Releases on new { ConfigFileId = file.Id, Version = file.CurrentReleaseVersion }
-                          equals new { release.ConfigFileId, Version = (long?)release.Version }
-                      where file.EnvironmentId == resource.EnvironmentId && file.Name == fileName
-                      select new PublishedConfigResponse(file.Id, release.Version, release.PublishedAt, release.Json))
-            .SingleOrDefaultAsync(ct)
-            ?? throw new ApiOperationException(404, "published_config_not_found", "文件不存在或尚未发布。");
-    }
+    public Task<PublishedConfigResponse> ReadAsync(ClaimsPrincipal user, string projectKey, string environmentKey, string fileName, CancellationToken ct) =>
+        ReadPublishedAsync(user, projectKey, environmentKey, fileName, SnapshotProjection, ct);
 
     /// <summary>核对、注册、再次核对并等待发布，等待期间不持有数据库资源。</summary>
     /// <param name="user">已认证的应用身份。</param>
@@ -65,11 +61,11 @@ public sealed class DistributionService(IServiceScopeFactory scopes, IReleaseNot
         if (known.ConfigFileId == Guid.Empty || known.Version <= 0)
             throw new ApiOperationException(400, "invalid_release_identity", "已知发布身份无效。");
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct, lifetime.ApplicationStopping);
-        var current = await ReadIdentityAsync(user, projectKey, environmentKey, fileName, stop.Token);
+        var current = await ReadPublishedAsync(user, projectKey, environmentKey, fileName, IdentityProjection, stop.Token);
         if (current != known)
             return current;
         using var subscription = notifications.Subscribe(current.ConfigFileId);
-        current = await ReadIdentityAsync(user, projectKey, environmentKey, fileName, stop.Token);
+        current = await ReadPublishedAsync(user, projectKey, environmentKey, fileName, IdentityProjection, stop.Token);
         if (current != known)
             return current;
         try
@@ -80,19 +76,21 @@ public sealed class DistributionService(IServiceScopeFactory scopes, IReleaseNot
         {
             // 超时仍查询持久化身份，覆盖提交成功但未能通知的发布。
         }
-        current = await ReadIdentityAsync(user, projectKey, environmentKey, fileName, stop.Token);
+        current = await ReadPublishedAsync(user, projectKey, environmentKey, fileName, IdentityProjection, stop.Token);
         return current == known ? null : current;
     }
 
-    /// <summary>只投影发布身份，并在返回前重新核对当前令牌及资源授权。</summary>
+    /// <summary>在短作用域内重新核对授权并投影当前发布记录。</summary>
+    /// <typeparam name="T">发布查询的响应类型。</typeparam>
     /// <param name="user">应用身份。</param>
     /// <param name="projectKey">项目业务标识。</param>
     /// <param name="environmentKey">环境业务标识。</param>
     /// <param name="fileName">文件原名。</param>
+    /// <param name="projection">可由数据库翻译的发布记录投影。</param>
     /// <param name="ct">取消信号。</param>
-    /// <returns>来自数据库当前发布记录的身份。</returns>
-    private async Task<PublishedIdentityResponse> ReadIdentityAsync(ClaimsPrincipal user, string projectKey,
-        string environmentKey, string fileName, CancellationToken ct)
+    /// <returns>来自数据库当前发布记录的投影。</returns>
+    private async Task<T> ReadPublishedAsync<T>(ClaimsPrincipal user, string projectKey,
+        string environmentKey, string fileName, Expression<Func<Release, T>> projection, CancellationToken ct) where T : class
     {
         await using var scope = scopes.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TrelixDbContext>();
@@ -101,7 +99,7 @@ public sealed class DistributionService(IServiceScopeFactory scopes, IReleaseNot
                       join release in db.Releases on new { ConfigFileId = file.Id, Version = file.CurrentReleaseVersion }
                           equals new { release.ConfigFileId, Version = (long?)release.Version }
                       where file.EnvironmentId == resource.EnvironmentId && file.Name == fileName
-                      select new PublishedIdentityResponse(file.Id, release.Version))
+                      select release).Select(projection)
             .SingleOrDefaultAsync(ct)
             ?? throw new ApiOperationException(404, "published_config_not_found", "文件不存在或尚未发布。");
     }
@@ -117,10 +115,10 @@ public sealed class DistributionService(IServiceScopeFactory scopes, IReleaseNot
     private async Task<ApplicationResource> ResolveAsync(IServiceProvider services, TrelixDbContext db, ClaimsPrincipal user,
         string projectKey, string environmentKey, CancellationToken ct)
     {
-        var identity = user.Identities.SingleOrDefault(x => x.AuthenticationType == AuthenticationConstants.ApplicationScheme);
+        var hasTokenId = user.TryGetApplicationTokenId(out var tokenId);
         var now = time.GetUtcNow();
-        if (!Guid.TryParse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var tokenId)
-            || !await db.ApplicationTokens.AnyAsync(x => x.Id == tokenId && x.RevokedAt == null && x.ExpiresAt > now, ct))
+        if (!hasTokenId
+            || !await db.ApplicationTokens.WhereActiveAt(now).AnyAsync(x => x.Id == tokenId, ct))
             throw new ApiOperationException(401, "authentication_required", "应用令牌无效或已失效。");
         var resource = await (from environment in db.Environments
                               join project in db.Projects on environment.ProjectId equals project.Id

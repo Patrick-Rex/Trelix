@@ -41,9 +41,3 @@ public sealed record ApplicationTokenResponse(Guid Id, string Name, DateTimeOffs
 /// <param name="Token">新签发的令牌元数据。</param>
 /// <param name="Secret">应用凭证原文。</param>
 public sealed record IssuedApplicationTokenResponse(ApplicationTokenResponse Token, string Secret);
-
-/// <summary>按创建时间倒序返回的有界令牌列表。</summary>
-/// <param name="Items">当前页的令牌元数据。</param>
-/// <param name="Page">从 1 开始的页码。</param>
-/// <param name="PageSize">每页返回的最大条目数。</param>
-public sealed record ApplicationTokenListResponse(IReadOnlyList<ApplicationTokenResponse> Items, int Page, int PageSize);

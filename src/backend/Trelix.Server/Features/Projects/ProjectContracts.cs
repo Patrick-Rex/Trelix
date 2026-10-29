@@ -29,10 +29,3 @@ public sealed record ProjectResponse(Guid Id, string Key, string DisplayName, Gu
 /// <param name="DisplayName">显示名称。</param>
 /// <param name="ConcurrencyStamp">并发基准。</param>
 public sealed record EnvironmentResponse(Guid Id, Guid ProjectId, string Key, string DisplayName, Guid ConcurrencyStamp);
-
-/// <summary>有界列表响应；条目数量等于页大小时可请求下一页。</summary>
-/// <typeparam name="T">列表条目契约。</typeparam>
-/// <param name="Items">当前页条目。</param>
-/// <param name="Page">从 1 开始的页码。</param>
-/// <param name="PageSize">每页最大条目数。</param>
-public sealed record PageResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize);

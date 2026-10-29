@@ -36,7 +36,7 @@ public sealed class ApplicationTokenHandler(
         var now = time.GetUtcNow();
         await using var scope = scopes.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<TrelixDbContext>();
-        var id = await db.ApplicationTokens.Where(x => x.SecretHash == hash && x.RevokedAt == null && x.ExpiresAt > now)
+        var id = await db.ApplicationTokens.WhereActiveAt(now).Where(x => x.SecretHash == hash)
             .Select(x => (Guid?)x.Id).SingleOrDefaultAsync(Context.RequestAborted);
         if (id is null)
             return AuthenticateResult.Fail("Invalid application credential.");

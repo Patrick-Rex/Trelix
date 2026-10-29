@@ -1,8 +1,10 @@
 using System.Net;
 using System.Collections.Concurrent;
+using System.Data.Common;
 using System.Net.Http.Json;
 using System.Threading.Channels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Trelix.Server.Features.ConfigFiles;
@@ -19,6 +21,25 @@ namespace Trelix.Server.Tests;
 /// <summary>通过真实 HTTP 和 SQLite 验证长轮询的一致性、身份及资源释放。</summary>
 public sealed class DistributionWatchTests
 {
+    /// <summary>在第二次发布身份查询执行后发出信号，供测试在进入等待阶段后修改凭证。</summary>
+    private sealed class SecondIdentityRead : DbCommandInterceptor
+    {
+        private int reads;
+        internal TaskCompletionSource Ready { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal bool Enabled { get; set; }
+
+        /// <inheritdoc />
+        public override async ValueTask<DbDataReader> ReaderExecutedAsync(DbCommand command,
+            CommandExecutedEventData eventData, DbDataReader result, CancellationToken cancellationToken = default)
+        {
+            var reader = await base.ReaderExecutedAsync(command, eventData, result, cancellationToken);
+            if (Enabled && command.CommandText.Contains("JOIN \"Releases\"", StringComparison.Ordinal)
+                && Interlocked.Increment(ref reads) == 2)
+                Ready.TrySetResult();
+            return reader;
+        }
+    }
+
     /// <summary>实际进入等待注册之前，认证及发布查询创建的所有 DbContext 都已经释放。</summary>
     /// <returns>测试任务。</returns>
     [Fact]
@@ -242,13 +263,20 @@ public sealed class DistributionWatchTests
     [InlineData("scope")]
     public async Task WaitingRequestRevalidatesCredentials(string change)
     {
-        await using var fixture = await CreateAsync(Configure);
+        var identityRead = new SecondIdentityRead();
+        await using var fixture = await CreateAsync(services =>
+        {
+            Configure(services);
+            services.AddDbContext<TrelixDbContext>((_, options) => options.AddInterceptors(identityRead));
+        });
         await fixture.SaveAsync("{}");
         await fixture.PublishAsync();
         var issued = await fixture.IssueAsync();
         using var consumer = fixture.Consumer(issued.Secret);
+        identityRead.Enabled = true;
         var pending = consumer.GetAsync(Path(fixture), TestContext.Current.CancellationToken);
         await RegisteredAsync(fixture);
+        await identityRead.Ready.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
         if (change == "expire") fixture.App.Clock.Advance(TimeSpan.FromHours(2));
         else if (change == "revoke")
         {

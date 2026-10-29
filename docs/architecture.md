@@ -25,6 +25,7 @@ Trelix/
 ├── src/
 │   ├── backend/
 │   │   ├── Trelix.Server/
+│   │   │   ├── Common/                   管理 API 跨模块共享规则
 │   │   │   ├── Features/
 │   │   │   │   ├── Authentication/        管理员初始化、会话与身份校验
 │   │   │   │   ├── Projects/              项目与环境管理
@@ -42,6 +43,8 @@ Trelix/
 │   │   │   │   └── Notifications/         单实例内的变更通知与等待管理
 │   │   │   └── Program.cs                 宿主装配与中间件入口
 │   │   ├── Trelix.Core/
+│   │   │   ├── Abstractions/             通用能力接口
+│   │   │   ├── Models/                   通用数据模型和结果契约
 │   │   │   ├── Middleware/                通用异常处理与 HTTP 错误响应机制
 │   │   │   ├── Serialization/             通用序列化辅助
 │   │   │   └── Extensions/                通用技术组件注册入口
@@ -85,7 +88,7 @@ Trelix/
 
 `tests/` 下为 .NET 测试项目；前端测试留在前端工程内并使用同一 npm 依赖体系。`samples/` 是 SDK 使用方示例，不承担 Server 业务实现。`deploy/` 保存构建和部署资产，持久化数据及密钥不放入这些源码目录。
 
-单个后端业务目录内就近放置 Minimal API Endpoints、用例服务、请求/响应 DTO 与业务校验。按功能需要建立文件，不机械地为每个用例生成接口、仓储或多层转发类。`Persistence` 负责 EF 映射和存取基础，用例服务可直接使用 DbContext，业务事务边界由用例服务控制，不再包装通用仓储。
+单个后端业务目录内就近放置 Minimal API Endpoints、用例服务、请求/响应 DTO 与业务校验。按功能需要建立文件，不机械地为每个用例生成接口、仓储或多层转发类。分页结果与并发标记能力接口位于 Core；管理分页参数、数据库分页查询、并发校验及标记刷新留在 Server，应用身份解析和有效令牌查询规则属于认证基础设施。`Persistence` 负责 EF 映射和存取基础，用例服务可直接使用 DbContext，业务事务边界由用例服务控制，不再包装通用仓储。
 
 ## 依赖规则
 
@@ -141,7 +144,7 @@ flowchart LR
 | --- | --- | --- |
 | `src/frontend` | 管理员交互、资源选择、编辑文档状态、JSON/YAML/Tree 视图与 API 调用 | 不直接访问数据库；浏览器校验不能替代服务端校验和授权 |
 | `src/backend/Trelix.Server` | 管理 API、应用 API、认证授权、配置校验、发布事务、历史版本与数据访问 | 业务逻辑留在 Server；Endpoints 处理 HTTP，复杂业务由应用服务承担 |
-| `src/backend/Trelix.Core` | 通用异常处理、中间件、序列化辅助与技术组件注册扩展 | 不包含项目、环境、配置文件、发布版本等业务概念；不承载业务实体、DbContext、迁移或权限规则 |
+| `src/backend/Trelix.Core` | 通用分页结果、并发能力接口、异常处理、中间件、序列化辅助与技术组件注册扩展 | 不包含项目、环境、配置文件、发布版本等业务概念；不依赖 EF Core，不承载业务实体、DbContext、迁移或权限规则 |
 | `src/backend/Trelix.ServiceDefaults` | 遥测、健康检查、服务发现和 HTTP 弹性 | 不依赖 Server 业务类型、实体、DbContext 或前端；Server 复用其注册 |
 | `src/Trelix.AppHost` | 本地进程编排、连接信息传递与启动顺序 | 不保存配置业务数据，不执行配置发布；不承担生产容器中的应用入口 |
 | `src/sdk/Trelix.Extensions.Configuration` | 读取已发布配置、监听变更、更新配置提供程序和发出重载通知 | 通过 HTTP 契约访问 Server，不依赖 Server 业务程序集或数据库；不执行管理员登录 |
@@ -157,12 +160,15 @@ flowchart LR
 | --- | --- |
 | 通用异常捕获、Problem Details 输出机制 | Core 提供机制；业务错误标识及业务错误到 HTTP 的映射由 Server 定义并装配，Core 不引用业务异常类型 |
 | 通用序列化辅助 | Core；配置正文的有效性、草稿修订和发布约束仍由 Server 的相关业务模块校验 |
+| 分页与并发契约 | Core 提供分页结果与并发标记接口；Server 维护分页参数、EF 查询及并发业务校验 |
 | 配置中心持久化 | Server 的 Persistence；实体、DbContext、映射及迁移共同维护业务数据模型 |
 | 管理员与应用令牌认证授权 | Server；凭证生命周期、项目与环境授权范围属于业务规则 |
 | 发布通知与长轮询等待管理 | Server 的 Infrastructure/Notifications；按配置文件隔离，遵循提交后通知和持久化版本核对规则 |
 | 遥测、健康检查、服务发现与 HTTP 弹性 | ServiceDefaults；Core 不重复提供这些宿主默认注册 |
 
 Core 只随实际功能增加通用能力，不预建通用框架，不包装已有平台 API 以填充目录。业务功能及其专用基础设施在 Server 内维护，SDK 保持独立的客户端依赖边界。
+
+Core 按技术职责组织同级目录：通用数据模型放 `Models`，能力接口放 `Abstractions`，中间件放 `Middleware`；序列化和扩展能力分别按需放入 `Serialization` 与 `Extensions`。各目录可容纳多项相关能力，只有实际需要时才创建目录和实现，避免为单个小功能建立顶级目录；命名空间与目录层级保持一致。
 
 ## 业务模块与用例
 
@@ -261,6 +267,8 @@ Endpoints、事务服务、通知管理分别承担 HTTP、持久化和等待唤
 | 应用监听 | 相同文件身份、已知发布身份与 Bearer 应用令牌 | 变化结果或正常等待结束；授权拒绝和传输失败有明确区别 |
 
 请求/响应使用独立 DTO，JSON 正文作为配置数据处理，不与传输元数据或持久化实体混在一起。错误使用 HTTP 状态码与 Problem Details，附带稳定错误标识及追踪信息，不附带原始配置、凭证或内部异常正文。400 表示输入无效，401/403 表示认证或授权失败，404 表示所请求资源不可用，409 表示并发或资源约束冲突。
+
+管理列表使用从 1 开始的页码，默认页大小为 50，响应包含 `items`、`page`、`pageSize`；数据按各资源的稳定顺序在数据库侧分页，响应不包含总数。
 
 管理写请求不由通用 HTTP 重试机制自动重放；失败后是否已经成功需重新读取并核对基准。API 的取消信号传递到下游 I/O；API 路由错误必须保留 API 错误响应，不能落入 SPA fallback 返回页面。错误与契约元数据遵循 [ASP.NET Core API 错误处理](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling-api?view=aspnetcore-10.0)。
 

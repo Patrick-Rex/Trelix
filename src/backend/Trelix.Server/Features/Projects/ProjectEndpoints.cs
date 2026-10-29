@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Trelix.Server.Features.Projects;
+using Trelix.Core.Models;
+using Trelix.Server.Common.Pagination;
 
 namespace Trelix.Server.Features.Projects;
 
@@ -30,7 +31,7 @@ public static class ProjectEndpoints
     /// <param name="page">页码。</param>
     /// <param name="pageSize">页大小。</param>
     /// <returns>操作结果；失败由统一错误处理器转换为 Problem Details。</returns>
-    private static async Task<Ok<PageResponse<ProjectResponse>>> ListProjects(ProjectService service, CancellationToken ct, [Range(1, 1000000)] int page = 1, [Range(1, 100)] int pageSize = 50)
+    private static async Task<Ok<PageResponse<ProjectResponse>>> ListProjects(ProjectService service, CancellationToken ct, [Range(1, PaginationDefaults.MaxPage)] int page = PaginationDefaults.Page, [Range(1, PaginationDefaults.MaxPageSize)] int pageSize = PaginationDefaults.PageSize)
     {
         return TypedResults.Ok(await service.ListProjectsAsync(page, pageSize, ct));
     }
@@ -86,7 +87,7 @@ public static class ProjectEndpoints
     /// <param name="page">页码。</param>
     /// <param name="pageSize">页大小。</param>
     /// <returns>操作结果；失败由统一错误处理器转换为 Problem Details。</returns>
-    private static async Task<Ok<PageResponse<EnvironmentResponse>>> ListEnvironments(Guid projectId, ProjectService service, CancellationToken ct, [Range(1, 1000000)] int page = 1, [Range(1, 100)] int pageSize = 50)
+    private static async Task<Ok<PageResponse<EnvironmentResponse>>> ListEnvironments(Guid projectId, ProjectService service, CancellationToken ct, [Range(1, PaginationDefaults.MaxPage)] int page = PaginationDefaults.Page, [Range(1, PaginationDefaults.MaxPageSize)] int pageSize = PaginationDefaults.PageSize)
     {
         return TypedResults.Ok(await service.ListEnvironmentsAsync(projectId, page, pageSize, ct));
     }

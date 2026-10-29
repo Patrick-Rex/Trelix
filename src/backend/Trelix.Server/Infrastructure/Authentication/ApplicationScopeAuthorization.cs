@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Trelix.Server.Persistence;
@@ -28,8 +27,7 @@ public sealed class ApplicationScopeHandler(IServiceScopeFactory scopes, TimePro
     /// <returns>表示授权校验完成的任务。</returns>
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ApplicationScopeRequirement requirement, ApplicationResource resource)
     {
-        var identity = context.User.Identities.SingleOrDefault(x => x.AuthenticationType == AuthenticationConstants.ApplicationScheme);
-        if (!Guid.TryParse(identity?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var tokenId))
+        if (!context.User.TryGetApplicationTokenId(out var tokenId))
             return;
 
         var now = time.GetUtcNow();
@@ -37,8 +35,8 @@ public sealed class ApplicationScopeHandler(IServiceScopeFactory scopes, TimePro
         var db = databaseScope.ServiceProvider.GetRequiredService<TrelixDbContext>();
         var allowed = await (from scope in db.TokenScopes
                              join environment in db.Environments on scope.EnvironmentId equals environment.Id
-                             join token in db.ApplicationTokens on scope.ApplicationTokenId equals token.Id
-                             where token.Id == tokenId && token.RevokedAt == null && token.ExpiresAt > now
+                             join token in db.ApplicationTokens.WhereActiveAt(now) on scope.ApplicationTokenId equals token.Id
+                             where token.Id == tokenId
                                  && environment.Id == resource.EnvironmentId && environment.ProjectId == resource.ProjectId
                              select token.Id).AnyAsync(httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None);
         if (allowed)

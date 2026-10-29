@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Models;
 using Trelix.Server.Features.ConfigFiles;
 using Trelix.Server.Features.Projects;
 using Trelix.Server.Infrastructure;
@@ -29,10 +30,9 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
         int page, int pageSize, CancellationToken ct)
     {
         await files.FindAsync(projectId, environmentId, fileId, ct);
-        return new(await db.Releases.Where(x => x.ConfigFileId == fileId).OrderByDescending(x => x.Version)
-            .Skip((page - 1) * pageSize).Take(pageSize)
+        return await db.Releases.Where(x => x.ConfigFileId == fileId).OrderByDescending(x => x.Version)
             .Select(x => new ReleaseResponse(x.ConfigFileId, x.Version, x.DraftRevision, x.SourceVersion, x.PublishedAt))
-            .ToListAsync(ct), page, pageSize);
+            .ToPageAsync(page, pageSize, ct);
     }
 
     /// <summary>读取同一文件内指定版本的不可变正文。</summary>
@@ -60,7 +60,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
     public async Task<PublicationResponse> PublishAsync(Guid projectId, Guid environmentId, Guid fileId, PublishRequest request, CancellationToken ct)
     {
         var file = await files.FindAsync(projectId, environmentId, fileId, ct);
-        ProjectService.RequireStamp(request.ConcurrencyStamp, file.ConcurrencyStamp);
+        file.RequireStamp(request.ConcurrencyStamp);
         if (file.DraftJson is null)
             throw new ApiOperationException(409, "draft_missing", "文件尚无可发布的草稿。");
         if (request.DraftRevision != file.DraftRevision)
@@ -79,7 +79,7 @@ public sealed class ReleaseService(TrelixDbContext db, ConfigFileService files, 
     public async Task<PublicationResponse> RollbackAsync(Guid projectId, Guid environmentId, Guid fileId, RollbackRequest request, CancellationToken ct)
     {
         var file = await files.FindAsync(projectId, environmentId, fileId, ct);
-        ProjectService.RequireStamp(request.ConcurrencyStamp, file.ConcurrencyStamp);
+        file.RequireStamp(request.ConcurrencyStamp);
         var source = await db.Releases.AsNoTracking().SingleOrDefaultAsync(x => x.ConfigFileId == fileId && x.Version == request.SourceVersion, ct)
             ?? throw new ApiOperationException(404, "release_not_found", "历史发布版本不存在。");
         ConfigJson.Validate(source.Json);

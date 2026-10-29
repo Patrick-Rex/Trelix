@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Abstractions;
 using Trelix.Server.Persistence.Entities;
 
 namespace Trelix.Server.Persistence;
@@ -38,7 +39,7 @@ public sealed class TrelixDbContext(DbContextOptions<TrelixDbContext> options) :
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TrelixDbContext).Assembly);
     }
 
-    /// <summary>拒绝修改已有发布记录，并为修改的配置文件和令牌刷新并发标记。</summary>
+    /// <summary>拒绝修改已有发布记录，并为修改的并发资源刷新标记。</summary>
     /// <exception cref="InvalidOperationException">已有发布记录被标记为修改。</exception>
     private void PrepareChanges()
     {
@@ -48,19 +49,7 @@ public sealed class TrelixDbContext(DbContextOptions<TrelixDbContext> options) :
                 throw new InvalidOperationException("Published releases are immutable.");
         }
 
-        foreach (var entry in ChangeTracker.Entries<ConfigFile>())
-            if (entry.State == EntityState.Modified)
-                entry.Entity.ConcurrencyStamp = Guid.NewGuid();
-
-        foreach (var entry in ChangeTracker.Entries<Project>())
-            if (entry.State == EntityState.Modified)
-                entry.Entity.ConcurrencyStamp = Guid.NewGuid();
-
-        foreach (var entry in ChangeTracker.Entries<ProjectEnvironment>())
-            if (entry.State == EntityState.Modified)
-                entry.Entity.ConcurrencyStamp = Guid.NewGuid();
-
-        foreach (var entry in ChangeTracker.Entries<ApplicationToken>())
+        foreach (var entry in ChangeTracker.Entries<IConcurrencyStamped>())
             if (entry.State == EntityState.Modified)
                 entry.Entity.ConcurrencyStamp = Guid.NewGuid();
     }

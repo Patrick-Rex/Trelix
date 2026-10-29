@@ -1,3 +1,5 @@
+using Trelix.Core.Abstractions;
+
 namespace Trelix.Server.Persistence.Entities;
 
 /// <summary>唯一内置管理员的密码哈希与会话安全戳。</summary>
@@ -27,7 +29,7 @@ public sealed class AdministratorSession
 }
 
 /// <summary>应用只读凭证的摘要、生命周期、授权范围与并发标记。</summary>
-public sealed class ApplicationToken
+public sealed class ApplicationToken : IConcurrencyStamped
 {
     /// <summary>令牌元数据与授权关联使用的标识。</summary>
     public Guid Id { get; set; } = Guid.NewGuid();

@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.OpenApi;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using Trelix.Core.Models;
 using Trelix.Core.Middleware;
 using Trelix.Server.Features.Authentication;
 using Trelix.Server.Features.ApplicationTokens;
@@ -110,7 +113,26 @@ public static class ServerServices
         services.AddExceptionHandler<SafeExceptionHandler>();
         services.AddValidation();
         services.Configure<Microsoft.AspNetCore.Routing.RouteHandlerOptions>(options => options.ThrowOnBadRequest = true);
-        services.AddOpenApi("admin");
+        services.AddOpenApi("admin", options =>
+        {
+            options.CreateSchemaReferenceId = type => type.Type == typeof(PageResponse<ApplicationTokenResponse>)
+                ? "ApplicationTokenListResponse"
+                : OpenApiOptions.CreateDefaultSchemaReferenceId(type);
+            options.AddSchemaTransformer((schema, context, _) =>
+            {
+                if (context.JsonTypeInfo.Type == typeof(PageResponse<ApplicationTokenResponse>) && context.JsonPropertyInfo is null)
+                {
+                    schema.Description = "按创建时间倒序返回的有界令牌列表。";
+                    if (schema.Properties?["items"] is OpenApiSchema items)
+                        items.Description = "当前页的令牌元数据。";
+                    if (schema.Properties?["page"] is OpenApiSchema page)
+                        page.Description = "从 1 开始的页码。";
+                    if (schema.Properties?["pageSize"] is OpenApiSchema pageSize)
+                        pageSize.Description = "每页返回的最大条目数。";
+                }
+                return Task.CompletedTask;
+            });
+        });
         services.AddOpenApi("application");
         return services;
     }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Models;
 using Trelix.Server.Infrastructure;
 using Trelix.Server.Infrastructure.Authentication;
 using Trelix.Server.Persistence;
@@ -16,12 +17,9 @@ public sealed class ApplicationTokenService(TrelixDbContext db, TimeProvider tim
     /// <param name="pageSize">每页返回的最大条目数。</param>
     /// <param name="cancellationToken">取消当前操作的令牌。</param>
     /// <returns>有界的令牌列表及分页信息。</returns>
-    public async Task<ApplicationTokenListResponse> ListAsync(int page, int pageSize, CancellationToken cancellationToken)
-    {
-        var tokens = await ProjectTokens(db.ApplicationTokens.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize).Take(pageSize)).ToListAsync(cancellationToken);
-        return new ApplicationTokenListResponse(tokens, page, pageSize);
-    }
+    public Task<PageResponse<ApplicationTokenResponse>> ListAsync(int page, int pageSize, CancellationToken cancellationToken) =>
+        ProjectTokens(db.ApplicationTokens.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id))
+            .ToPageAsync(page, pageSize, cancellationToken);
 
     /// <summary>根据标识查询令牌元数据及授权范围。</summary>
     /// <param name="id">目标应用令牌标识。</param>

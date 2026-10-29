@@ -1,7 +1,9 @@
+using Trelix.Core.Abstractions;
+
 namespace Trelix.Server.Persistence.Entities;
 
 /// <summary>配置资源的顶层项目，使用唯一业务标识区分。</summary>
-public sealed class Project
+public sealed class Project : IConcurrencyStamped
 {
     /// <summary>修改或删除项目时使用的并发基准。</summary>
     public Guid ConcurrencyStamp { get; set; } = Guid.NewGuid();
@@ -14,7 +16,7 @@ public sealed class Project
 }
 
 /// <summary>项目内的配置环境，其业务标识在所属项目内唯一。</summary>
-public sealed class ProjectEnvironment
+public sealed class ProjectEnvironment : IConcurrencyStamped
 {
     /// <summary>修改或删除环境时使用的并发基准。</summary>
     public Guid ConcurrencyStamp { get; set; } = Guid.NewGuid();
@@ -29,7 +31,7 @@ public sealed class ProjectEnvironment
 }
 
 /// <summary>环境中的配置文件，分别维护可修改草稿与当前发布版本指向。</summary>
-public sealed class ConfigFile
+public sealed class ConfigFile : IConcurrencyStamped
 {
     /// <summary>配置文件的持久化标识。</summary>
     public Guid Id { get; set; } = Guid.NewGuid();

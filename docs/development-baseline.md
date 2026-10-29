@@ -8,11 +8,11 @@
 | --- | --- | --- |
 | 文本文件格式 | UTF-8 无 BOM、LF、文件末尾换行；`.bat` / `.cmd` 使用 CRLF | [.editorconfig](../.editorconfig)、[.gitattributes](../.gitattributes)；修改后检查实际格式，不代表存量文件全部标准化 |
 | 项目架构 | 轻量模块化单体；Server 保留业务并按模块分目录，Core 承担通用技术基础设施，SDK 独立 | 前端、Server、Core、ServiceDefaults、AppHost、SDK、测试、示例及部署资产按 [目标项目结构](architecture.md#目标项目结构) 组织；Server 不再拆分分层类库 |
-| 通用技术基础设施 | Core 承担通用异常处理、中间件、序列化辅助和技术组件注册扩展 | 已接入不输出异常正文的通用异常处理器；按 [职责边界](architecture.md#通用技术与业务基础设施边界) 增加实际需要的能力，业务持久化、认证授权与发布通知留在 Server，SDK 不依赖 Core |
+| 通用技术基础设施 | Core 承担通用分页结果、并发能力契约、异常处理、中间件、序列化辅助和技术组件注册扩展 | Core 不依赖 EF Core；已接入不输出异常正文的通用异常处理器；按 [职责边界](architecture.md#通用技术与业务基础设施边界) 增加实际需要的能力，业务持久化、认证授权与发布通知留在 Server，SDK 不依赖 Core |
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |
 | .NET 依赖管理 | 集中管理 SDK、构建属性、NuGet 包版本和包源 | 根目录配置，见下文；不启用预览 SDK，不自动跨主版本升级 |
-| HTTP API | ASP.NET Core Minimal APIs + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 各 Features 模块以静态 Endpoints 映射路由，使用 .NET 10 `AddValidation`；管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
+| HTTP API | ASP.NET Core Minimal APIs + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 各 Features 模块以静态 Endpoints 映射路由，使用 .NET 10 `AddValidation`；管理列表共享分页契约和查询扩展，管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
 | 本地编排 | Aspire 13 | AppHost SDK 为 13.5.4，JavaScript 集成包为 13.6.0，分别由 `global.json` 与 `Directory.Packages.props` 管理；保持 NuGet 还原编排依赖，CLI bundle 与提示处理见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) |
 | 公共运行能力 | ServiceDefaults 提供 OpenTelemetry、健康检查、服务发现与 HTTP 弹性 | 公共注册由 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 维护；避免重复注册 |
 | 前端框架 | Vue 3 + Vite + Composition API | [package.json](../src/frontend/package.json) 声明 Vue `^3.5.42`、Vite `^8.3.0`；安装版本由锁文件确定 |
@@ -36,7 +36,7 @@ ESLint 的 TypeScript 配置按 [官方加载方式](https://eslint.org/docs/lat
 
 ## .NET 统一配置
 
-手写类型与方法的标准文档注释遵循 [根指引](../AGENTS.md#实现与文档)。Server 启用 XML 文档生成，供内置 OpenAPI 读取 API 契约说明；公开属性与常量同样提供 XML 文档，不通过抑制 CS1591 跳过说明；生成代码由生成器维护。
+手写类型与方法的标准文档注释遵循 [根指引](../AGENTS.md#实现与文档)。Server 与 Core 启用 XML 文档生成，供内置 OpenAPI 读取 API 契约说明；公开属性与常量同样提供 XML 文档，不通过抑制 CS1591 跳过说明；生成代码由生成器维护。
 
 后端新增与修改代码遵循 [性能反模式约束](../src/backend/AGENTS.md#性能反模式约束)，覆盖异步与资源边界、分配、集合、序列化、HTTP 及缓存；性能结论按 [性能变更验证](quality.md#性能变更验证) 提供证据。约束参考微软官方资料并适配现有基线，不代表已经安装相应技能、启用自动分析器、Native AOT、裁剪或新增基准测试依赖。
 

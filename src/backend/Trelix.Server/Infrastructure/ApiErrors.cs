@@ -17,7 +17,7 @@ public static class ApiErrors
     {
         var problem = new ProblemDetails { Status = status, Title = title };
         problem.Extensions["code"] = code;
-        problem.Extensions["traceId"] = Activity.Current?.Id ?? context.TraceIdentifier;
+        Enrich(problem, context);
         return TypedResults.Problem(problem);
     }
 
@@ -25,7 +25,15 @@ public static class ApiErrors
     /// <param name="context">待补充扩展字段的 Problem Details 上下文。</param>
     public static void Customize(ProblemDetailsContext context)
     {
-        context.ProblemDetails.Extensions.TryAdd("code", context.ProblemDetails.Status switch
+        Enrich(context.ProblemDetails, context.HttpContext);
+    }
+
+    /// <summary>补充默认错误码及追踪标识，保留已经指定的扩展字段。</summary>
+    /// <param name="problem">需要补充的错误响应。</param>
+    /// <param name="context">当前请求上下文。</param>
+    private static void Enrich(ProblemDetails problem, HttpContext context)
+    {
+        problem.Extensions.TryAdd("code", problem.Status switch
         {
             400 => "invalid_request",
             401 => "authentication_required",
@@ -36,6 +44,6 @@ public static class ApiErrors
             429 => "rate_limited",
             _ => "request_failed"
         });
-        context.ProblemDetails.Extensions.TryAdd("traceId", Activity.Current?.Id ?? context.HttpContext.TraceIdentifier);
+        problem.Extensions.TryAdd("traceId", Activity.Current?.Id ?? context.TraceIdentifier);
     }
 }

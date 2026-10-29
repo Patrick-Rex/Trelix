@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Models;
 using Trelix.Server.Infrastructure;
 using Trelix.Server.Persistence;
 using Trelix.Server.Persistence.Entities;
@@ -14,9 +15,9 @@ public sealed class ProjectService(TrelixDbContext db)
     /// <param name="pageSize">页大小。</param>
     /// <param name="ct">取消令牌。</param>
     /// <returns>项目分页结果。</returns>
-    public async Task<PageResponse<ProjectResponse>> ListProjectsAsync(int page, int pageSize, CancellationToken ct) =>
-        new(await db.Projects.OrderBy(x => x.Key).ThenBy(x => x.Id).Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new ProjectResponse(x.Id, x.Key, x.DisplayName, x.ConcurrencyStamp)).ToListAsync(ct), page, pageSize);
+    public Task<PageResponse<ProjectResponse>> ListProjectsAsync(int page, int pageSize, CancellationToken ct) =>
+        db.Projects.OrderBy(x => x.Key).ThenBy(x => x.Id)
+            .Select(x => new ProjectResponse(x.Id, x.Key, x.DisplayName, x.ConcurrencyStamp)).ToPageAsync(page, pageSize, ct);
 
     /// <summary>读取指定项目元数据。</summary>
     /// <param name="projectId">项目标识。</param>
@@ -47,7 +48,7 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task<ProjectResponse> UpdateProjectAsync(Guid projectId, ResourceRequest request, CancellationToken ct)
     {
         var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == projectId, ct) ?? throw Missing();
-        RequireStamp(request.ConcurrencyStamp, project.ConcurrencyStamp);
+        project.RequireStamp(request.ConcurrencyStamp);
         project.Key = request.Key;
         project.DisplayName = request.DisplayName;
         db.Entry(project).Property(x => x.ConcurrencyStamp).IsModified = true;
@@ -63,7 +64,7 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task DeleteProjectAsync(Guid projectId, Guid stamp, CancellationToken ct)
     {
         var project = await db.Projects.SingleOrDefaultAsync(x => x.Id == projectId, ct) ?? throw Missing();
-        RequireStamp(stamp, project.ConcurrencyStamp);
+        project.RequireStamp(stamp);
         if (await db.Environments.AnyAsync(x => x.ProjectId == projectId, ct))
             throw InUse();
         db.Projects.Remove(project);
@@ -79,9 +80,8 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task<PageResponse<EnvironmentResponse>> ListEnvironmentsAsync(Guid projectId, int page, int pageSize, CancellationToken ct)
     {
         await GetProjectAsync(projectId, ct);
-        return new(await db.Environments.Where(x => x.ProjectId == projectId).OrderBy(x => x.Key).ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new EnvironmentResponse(x.Id, x.ProjectId, x.Key, x.DisplayName, x.ConcurrencyStamp)).ToListAsync(ct), page, pageSize);
+        return await db.Environments.Where(x => x.ProjectId == projectId).OrderBy(x => x.Key).ThenBy(x => x.Id)
+            .Select(x => new EnvironmentResponse(x.Id, x.ProjectId, x.Key, x.DisplayName, x.ConcurrencyStamp)).ToPageAsync(page, pageSize, ct);
     }
 
     /// <summary>读取属于指定项目的环境。</summary>
@@ -117,7 +117,7 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task<EnvironmentResponse> UpdateEnvironmentAsync(Guid projectId, Guid environmentId, ResourceRequest request, CancellationToken ct)
     {
         var environment = await db.Environments.SingleOrDefaultAsync(x => x.ProjectId == projectId && x.Id == environmentId, ct) ?? throw Missing();
-        RequireStamp(request.ConcurrencyStamp, environment.ConcurrencyStamp);
+        environment.RequireStamp(request.ConcurrencyStamp);
         environment.Key = request.Key;
         environment.DisplayName = request.DisplayName;
         db.Entry(environment).Property(x => x.ConcurrencyStamp).IsModified = true;
@@ -134,23 +134,12 @@ public sealed class ProjectService(TrelixDbContext db)
     public async Task DeleteEnvironmentAsync(Guid projectId, Guid environmentId, Guid stamp, CancellationToken ct)
     {
         var environment = await db.Environments.SingleOrDefaultAsync(x => x.ProjectId == projectId && x.Id == environmentId, ct) ?? throw Missing();
-        RequireStamp(stamp, environment.ConcurrencyStamp);
+        environment.RequireStamp(stamp);
         if (await db.ConfigFiles.AnyAsync(x => x.EnvironmentId == environmentId, ct)
             || await db.TokenScopes.AnyAsync(x => x.EnvironmentId == environmentId, ct))
             throw InUse();
         db.Environments.Remove(environment);
         await db.SaveChangesAsync(ct);
-    }
-
-    /// <summary>校验调用方提供了非空且仍有效的并发标记。</summary>
-    /// <param name="expected">调用方基准。</param>
-    /// <param name="actual">持久化标记。</param>
-    public static void RequireStamp(Guid? expected, Guid actual)
-    {
-        if (expected is null || expected == Guid.Empty)
-            throw new ApiOperationException(400, "invalid_request", "必须提供资源的并发基准。");
-        if (expected != actual)
-            throw new ApiOperationException(409, "concurrent_change", "资源已被其他操作修改，请刷新后重试。");
     }
 
     /// <summary>创建不暴露请求输入的资源缺失错误。</summary>

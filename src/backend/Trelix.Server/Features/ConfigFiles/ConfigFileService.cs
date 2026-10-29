@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Trelix.Core.Models;
 using Trelix.Server.Features.Projects;
 using Trelix.Server.Infrastructure;
 using Trelix.Server.Persistence;
@@ -21,10 +22,9 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     public async Task<PageResponse<ConfigFileResponse>> ListAsync(Guid projectId, Guid environmentId, int page, int pageSize, CancellationToken ct)
     {
         await projects.GetEnvironmentAsync(projectId, environmentId, ct);
-        return new(await db.ConfigFiles.Where(x => x.EnvironmentId == environmentId).OrderBy(x => x.Name).ThenBy(x => x.Id)
-            .Skip((page - 1) * pageSize).Take(pageSize)
+        return await db.ConfigFiles.Where(x => x.EnvironmentId == environmentId).OrderBy(x => x.Name).ThenBy(x => x.Id)
             .Select(x => new ConfigFileResponse(x.Id, x.EnvironmentId, x.Name, x.DraftRevision, x.CurrentReleaseVersion, x.ConcurrencyStamp))
-            .ToListAsync(ct), page, pageSize);
+            .ToPageAsync(page, pageSize, ct);
     }
 
     /// <summary>读取文件与草稿的同一持久化快照。</summary>
@@ -70,7 +70,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     public async Task<ConfigFileResponse> RenameAsync(Guid projectId, Guid environmentId, Guid fileId, RenameConfigFileRequest request, CancellationToken ct)
     {
         var file = await FindAsync(projectId, environmentId, fileId, ct);
-        ProjectService.RequireStamp(request.ConcurrencyStamp, file.ConcurrencyStamp);
+        file.RequireStamp(request.ConcurrencyStamp);
         file.Name = request.Name;
         db.Entry(file).Property(x => x.ConcurrencyStamp).IsModified = true;
         await db.SaveChangesAsync(ct);
@@ -88,7 +88,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     {
         ConfigJson.Validate(request.Json);
         var file = await FindAsync(projectId, environmentId, fileId, ct);
-        ProjectService.RequireStamp(request.ConcurrencyStamp, file.ConcurrencyStamp);
+        file.RequireStamp(request.ConcurrencyStamp);
         if (file.DraftRevision == long.MaxValue)
             throw new ApiOperationException(409, "revision_exhausted", "草稿修订已达到可用范围上限。");
         file.DraftJson = request.Json;
@@ -107,7 +107,7 @@ public sealed class ConfigFileService(TrelixDbContext db, ProjectService project
     public async Task DeleteAsync(Guid projectId, Guid environmentId, Guid fileId, Guid stamp, CancellationToken ct)
     {
         var file = await FindAsync(projectId, environmentId, fileId, ct);
-        ProjectService.RequireStamp(stamp, file.ConcurrencyStamp);
+        file.RequireStamp(stamp);
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         file.CurrentReleaseVersion = null;
         // 即使尚未发布，也强制在 SQL 写入条件中校验并发基准。

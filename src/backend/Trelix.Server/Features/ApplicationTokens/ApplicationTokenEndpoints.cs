@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Trelix.Core.Models;
+using Trelix.Server.Common.Pagination;
 
 namespace Trelix.Server.Features.ApplicationTokens;
 
@@ -24,8 +26,8 @@ public static class ApplicationTokenEndpoints
     /// <param name="page">从 1 开始的页码。</param>
     /// <param name="pageSize">每页最多 100 条。</param>
     /// <returns>令牌分页结果。</returns>
-    private static async Task<Ok<ApplicationTokenListResponse>> List(ApplicationTokenService tokens,
-        CancellationToken cancellationToken, [Range(1, 1000000)] int page = 1, [Range(1, 100)] int pageSize = 50) =>
+    private static async Task<Ok<PageResponse<ApplicationTokenResponse>>> List(ApplicationTokenService tokens,
+        CancellationToken cancellationToken, [Range(1, PaginationDefaults.MaxPage)] int page = PaginationDefaults.Page, [Range(1, PaginationDefaults.MaxPageSize)] int pageSize = PaginationDefaults.PageSize) =>
         TypedResults.Ok(await tokens.ListAsync(page, pageSize, cancellationToken));
 
     /// <summary>读取指定令牌的元数据。</summary>
