@@ -3,5 +3,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <CilicaAllMethods>true</CilicaAllMethods>
   </PropertyGroup>
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj'">
+    <!-- All-method optimization needs no attributes; avoid duplicate public types in OpenAPI XML metadata. -->
+    <PackageReference Include="Cilica.OptimizerTask" PrivateAssets="all" ExcludeAssets="contentFiles" />
+  </ItemGroup>
 </Project>

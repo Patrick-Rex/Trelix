@@ -12,6 +12,7 @@
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |
 | .NET 依赖管理 | 集中管理 SDK、构建属性、NuGet 包版本和包源 | 根目录配置，见下文；不启用预览 SDK，不自动跨主版本升级 |
+| .NET IL 优化 | Cilica.OptimizerTask `0.15.0-preview` | 所有 C# 项目统一引用并设置 `CilicaAllMethods=true`，默认仅在 Release 构建执行；属于构建期私有依赖，不传递给 SDK 使用方，性能收益须另行测量 |
 | HTTP API | ASP.NET Core Minimal APIs + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 各 Features 模块以静态 Endpoints 映射路由，使用 .NET 10 `AddValidation`；管理列表共享分页契约和查询扩展，管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
 | 本地编排 | Aspire 13 | AppHost SDK 为 13.5.4，JavaScript 集成包为 13.6.0，分别由 `global.json` 与 `Directory.Packages.props` 管理；保持 NuGet 还原编排依赖，CLI bundle 与提示处理见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) |
 | 公共运行能力 | ServiceDefaults 提供 OpenTelemetry、健康检查、服务发现与 HTTP 弹性 | 公共注册由 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 维护；避免重复注册 |
@@ -44,12 +45,16 @@ ESLint 的 TypeScript 配置按 [官方加载方式](https://eslint.org/docs/lat
 
 | 文件 | 统一维护的内容 |
 | --- | --- |
-| [Directory.Build.props](../Directory.Build.props) | 所有 `.csproj` 的 `TargetFramework=net10.0`、`Nullable=enable`、`ImplicitUsings=enable`；不向前端 `.esproj` 注入这些 .NET 属性 |
+| [Directory.Build.props](../Directory.Build.props) | 所有 `.csproj` 的 `TargetFramework=net10.0`、`Nullable=enable`、`ImplicitUsings=enable`，以及 Cilica 私有包引用与 `CilicaAllMethods=true`；不向前端 `.esproj` 注入这些 .NET 属性或包引用 |
 | [Directory.Packages.props](../Directory.Packages.props) | 显式 NuGet 依赖的版本；启用 Central Package Management，禁用项目级 `VersionOverride` |
 | [global.json](../global.json) | .NET SDK 最低 10.0.300，`rollForward=latestMinor`、`allowPrerelease=false`；Aspire AppHost SDK 13.5.4、Visual Studio JavaScript SDK 1.0.6578810 与 MTP 测试命令模式 |
 | [nuget.config](../nuget.config) | 唯一包源为 NuGet.org；清除继承的包源及禁用源列表，通过 `packageSourceMapping` 将所有包映射到该源，不依赖本机私有源或离线目录 |
 
 新增或调整 NuGet 包时，项目只声明无版本的 `PackageReference`，版本在 `Directory.Packages.props` 维护；Aspire SDK 的隐式依赖由其 SDK 管理。项目保留 `OutputType`、`UserSecretsId`、项目引用等专属设置，不重复声明公共框架、Nullable 或 ImplicitUsings。公共设置的例外与版本升级先讨论，再统一修改根配置。
+
+[Cilica.OptimizerTask](https://www.nuget.org/packages/Cilica.OptimizerTask/0.15.0-preview) 按已确认版本作为预览构建工具接入，不改变稳定 .NET SDK 基线。根配置设置 `PrivateAssets=all` 与 `CilicaAllMethods=true`，覆盖 Server、Core、ServiceDefaults、AppHost、配置 SDK、示例及测试程序集中的方法；实际可转换范围由优化器支持能力决定。遵循包默认的 Release 优化、Debug 不优化行为，可通过 `-p:RunCilica=false` 临时关闭以定位差异。优化产物须执行 Release 行为回归，构建与测试通过不代表已经证明性能提升；验证入口见 [构建与验证](local-development.md#构建与验证)。
+
+包引用设置 `ExcludeAssets=contentFiles`，保留构建目标但不编译包附带的 `Cilica.Attributes` 特性源码。全方法模式无需这些特性；避免在多个程序集引入同名公开类型，并保持 OpenAPI 文档生成兼容。若后续需要按特性排除个别方法，应先重新验证特性分发与 OpenAPI 行为。
 
 前端 npm 依赖继续由 `src/frontend/package.json` 与 `package-lock.json` 管理；其 `.esproj` 的 MSBuild SDK 版本由 `global.json` 管理。SDK 选择与目标框架分别维护；`version` 必须填写完整 SDK 版本，`latestMinor` 允许同一大版本内后续小版本、feature band 和补丁，选择已安装且不低于 10.0.300 的最高稳定版 10.x，不跨到 .NET 11，也不自动安装 SDK。该策略不改变 `msbuild-sdks` 中单独指定的项目 SDK 版本。
 

@@ -212,6 +212,14 @@ dotnet build .\Trelix.slnx --nologo -v:q -clp:ErrorsOnly
 
 按根指引只读取 error 与退出码；子构建有额外输出时存临时日志，仅提取 error。按修改范围缩小到相关项目，具体命令见 [Server](../src/backend/Trelix.Server/AGENTS.md#验证)、[ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 和 [AppHost](../src/Trelix.AppHost/AGENTS.md) 指引。
 
+所有 C# 项目通过根配置接入 Cilica `0.15.0-preview`，设置 `CilicaAllMethods=true`，默认只在 Release 构建时执行 IL 优化；普通 Debug 构建不会覆盖优化产物的验证。检查优化接入时执行：
+
+```powershell
+dotnet build .\Trelix.slnx -c Release --nologo -v:q -clp:ErrorsOnly
+```
+
+随后按下文 [SDK 与示例自动化测试](#sdk-与示例自动化测试) 对当前 Release 产物执行两个测试项目。需要定位优化前后差异时，可追加 `-p:RunCilica=false` 并以 `-t:Rebuild` 重新构建；重新启用优化时同样重建，避免沿用另一模式的产物。配置范围见 [技术基线](development-baseline.md#net-统一配置)，性能结论仍遵循 [性能变更验证](quality.md#性能变更验证)。
+
 Server 保留对前端 `.esproj` 的构建引用，后端构建可能涉及 Node/npm 工具链。后端编译成功不表示前端生产构建或类型检查通过；前端命令见 [前端 README](../src/frontend/README.md#构建与检查)，验收要求见 [前端指引](../src/frontend/AGENTS.md#命令与验证)。
 
 执行测试与类型检查前，核对实际测试项目及前端 `package.json` 中的依赖和脚本；不能将未接入检查或零测试报告为通过。行为与文档验收见 [质量与验收](quality.md)。纯文档变更只检查内容、链接与文件格式，无需构建业务项目。
