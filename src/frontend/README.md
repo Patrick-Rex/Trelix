@@ -61,6 +61,8 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 npm ci
 ```
 
+Monaco 使用 `0.58.x`，Vite、ESLint 与 typescript-eslint 的安全修复下限由 `package.json` 声明，传递依赖版本以锁文件为准。依赖升级后执行 `npm audit`、`npm run check` 与 `npm run build`，同时验证漏洞审计、类型/lint 兼容性及生产打包；不使用忽略审计或自动强制跨版本升级代替修复。
+
 ## 独立启动
 
 统一启动前后端时遵循 [本地开发](../../docs/local-development.md#统一启动与联调)。仅需独立开发前端时，在本目录运行：

@@ -12,16 +12,16 @@
 | 后端运行时 | .NET 10，使用稳定的现代 .NET/C# 能力 | [Directory.Build.props](../Directory.Build.props) 的 `net10.0`、Nullable、ImplicitUsings；[global.json](../global.json) 的 SDK 策略 |
 | 配置 SDK 兼容基线 | 最低支持 .NET 10，目标框架 `net10.0` | SDK、示例及 .NET 测试项目继承根目录统一配置；接入验收在 .NET 10 上执行 |
 | .NET 依赖管理 | 集中管理 SDK、构建属性、NuGet 包版本和包源 | 根目录配置，见下文；不启用预览 SDK，不自动跨主版本升级 |
-| .NET IL 优化 | Cilica.OptimizerTask `0.15.0-preview` | 所有 C# 项目统一引用并设置 `CilicaAllMethods=true`，默认仅在 Release 构建执行；属于构建期私有依赖，不传递给 SDK 使用方，性能收益须另行测量 |
+| .NET IL 优化 | Cilica.OptimizerTask `0.20.8-preview` | 所有 C# 项目统一引用并设置 `CilicaAllMethods=true`，默认仅在 Release 构建执行；属于构建期私有依赖，不传递给 SDK 使用方，性能收益须另行测量 |
 | HTTP API | ASP.NET Core Minimal APIs + 内置 OpenAPI + Scalar UI；独立 DTO 和 Problem Details 错误 | 各 Features 模块以静态 Endpoints 映射路由，使用 .NET 10 `AddValidation`；管理列表共享分页契约和查询扩展，管理与应用 API 分离，见 [HTTP 边界](architecture.md#http-与监听边界)；Scalar UI 与 OpenAPI JSON 仅在 Development 映射，包版本由 [Directory.Packages.props](../Directory.Packages.props) 管理 |
-| 本地编排 | Aspire 13 | AppHost SDK 为 13.5.4，JavaScript 集成包为 13.6.0，分别由 `global.json` 与 `Directory.Packages.props` 管理；保持 NuGet 还原编排依赖，CLI bundle 与提示处理见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) |
+| 本地编排 | Aspire 13 | AppHost SDK 为 13.6.5，JavaScript 集成包为 13.6.5，分别由 `global.json` 与 `Directory.Packages.props` 管理；保持 NuGet 还原编排依赖，CLI bundle 与提示处理见 [AppHost 指引](../src/Trelix.AppHost/AGENTS.md) |
 | 公共运行能力 | ServiceDefaults 提供 OpenTelemetry、健康检查、服务发现与 HTTP 弹性 | 公共注册由 [ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 维护；避免重复注册 |
-| 前端框架 | Vue 3 + Vite + Composition API | [package.json](../src/frontend/package.json) 声明 Vue `^3.5.42`、Vite `^8.3.0`；安装版本由锁文件确定 |
+| 前端框架 | Vue 3 + Vite + Composition API | [package.json](../src/frontend/package.json) 声明 Vue `^3.5.42`、Vite `^8.3.8`；安装版本由锁文件确定 |
 | 前端模块与语言 | 全部自有代码、工具配置和检查脚本使用 ESM + TypeScript；Vue 使用 `<script setup lang="ts">` | 包声明 `type: module`；TypeScript 5.9、vue-tsc 和独立 Node 配置覆盖源码与工具，Vite worker 输出 ES 模块；构建先做契约和类型检查，再打包，当前没有自有 JavaScript 例外 |
 | UI 风格 | 现有浅色绿色 IDE 工作区，共享主题变量 | [UI 设计契约](ui-design.md) 与 [theme.css](../src/frontend/src/assets/theme.css) 维护视觉基线，组件不另设主题；已授权的演进同步修改契约、实现与验证 |
 | Node 与包管理 | Node.js 24 + npm 10+ | [package.json](../src/frontend/package.json)、[.nvmrc](../src/frontend/.nvmrc)；沿用 `package-lock.json` |
 | 页面组件 | Element Plus | 已接入 Element Plus 与 `@element-plus/icons-vue`；显式导入组件、图标和所需样式，版本以 npm 清单和锁文件为准 |
-| 配置编辑器 | Monaco Editor + `yaml` | 前端依赖 `monaco-editor` `^0.56.0` 与 `yaml` `^2.9.1`；Monaco 使用 Vite ESM worker 并延迟加载，YAML 解析按 1.2 版规则；单文件导入导出复用现有校验和浏览器文件 API，跨环境复制复用文件创建 API 的可选初始 JSON 草稿，无新增依赖或数据库迁移；实例生命周期与交互遵循前端指引 |
+| 配置编辑器 | Monaco Editor + `yaml` | 前端依赖 `monaco-editor` `^0.58.0` 与 `yaml` `^2.9.1`；Monaco 使用 Vite ESM worker 并延迟加载，YAML 解析按 1.2 版规则；单文件导入导出复用现有校验和浏览器文件 API，跨环境复制复用文件创建 API 的可选初始 JSON 草稿，无新增依赖或数据库迁移；实例生命周期与交互遵循前端指引 |
 | 数据存储 | SQLite + EF Core 10 | SQLite provider 与 Design 包版本由集中依赖管理；已接入初始与配置发布迁移、启动迁移入口；UTC 时间转换为 INTEGER ticks，项目、环境、文件与令牌使用应用维护的并发标记 |
 | 管理员认证 | 单个内置管理员 + ASP.NET Core Cookie，无 RBAC | 已接入 PasswordHasher、外部首次初始化、SQLite 会话校验、防伪造及按来源 IP 的登录令牌桶限流；管理界面按同一会话与防伪造契约接入 |
 | 应用访问 | 限定项目与环境的应用只读令牌，使用 Bearer 请求头 | 已接入令牌生命周期、多范围授权、已发布配置读取与长轮询；监听返回前重新查询凭证与权限 |
@@ -41,20 +41,23 @@ ESLint 的 TypeScript 配置按 [官方加载方式](https://eslint.org/docs/lat
 
 后端新增与修改代码遵循 [性能反模式约束](../src/backend/AGENTS.md#性能反模式约束)，覆盖异步与资源边界、分配、集合、序列化、HTTP 及缓存；性能结论按 [性能变更验证](quality.md#性能变更验证) 提供证据。约束参考微软官方资料并适配现有基线，不代表已经安装相应技能、启用自动分析器、Native AOT、裁剪或新增基准测试依赖。
 
-四个配置文件位于包含 `Trelix.slnx` 的根目录，使 Server、Core、ServiceDefaults、AppHost、配置 SDK、示例及 .NET 测试项目使用同一套配置；不在模块目录另建同名文件覆盖根配置。
+统一配置文件位于包含 `Trelix.slnx` 的根目录，使 Server、Core、ServiceDefaults、AppHost、配置 SDK、示例及 .NET 测试项目使用同一套配置；不在模块目录另建同名文件覆盖根配置。
 
 | 文件 | 统一维护的内容 |
 | --- | --- |
 | [Directory.Build.props](../Directory.Build.props) | 所有 `.csproj` 的 `TargetFramework=net10.0`、`Nullable=enable`、`ImplicitUsings=enable`，以及 Cilica 私有包引用与 `CilicaAllMethods=true`；不向前端 `.esproj` 注入这些 .NET 属性或包引用 |
+| [Directory.Build.targets](../Directory.Build.targets) | 将 Cilica 的 .NET / ASP.NET Core 引用包目录映射到对应版本的共享运行时目录，避免内联引用程序集的占位实现；缺少对应运行时目录时构建失败 |
 | [Directory.Packages.props](../Directory.Packages.props) | 显式 NuGet 依赖的版本；启用 Central Package Management，禁用项目级 `VersionOverride` |
-| [global.json](../global.json) | .NET SDK 最低 10.0.300，`rollForward=latestMinor`、`allowPrerelease=false`；Aspire AppHost SDK 13.5.4、Visual Studio JavaScript SDK 1.0.6578810 与 MTP 测试命令模式 |
+| [global.json](../global.json) | .NET SDK 最低 10.0.300，`rollForward=latestMinor`、`allowPrerelease=false`；Aspire AppHost SDK 13.6.5、Visual Studio JavaScript SDK 1.0.6578810 与 MTP 测试命令模式 |
 | [nuget.config](../nuget.config) | 唯一包源为 NuGet.org；清除继承的包源及禁用源列表，通过 `packageSourceMapping` 将所有包映射到该源，不依赖本机私有源或离线目录 |
 
 新增或调整 NuGet 包时，项目只声明无版本的 `PackageReference`，版本在 `Directory.Packages.props` 维护；Aspire SDK 的隐式依赖由其 SDK 管理。项目保留 `OutputType`、`UserSecretsId`、项目引用等专属设置，不重复声明公共框架、Nullable 或 ImplicitUsings。公共设置的例外与版本升级先讨论，再统一修改根配置。
 
-[Cilica.OptimizerTask](https://www.nuget.org/packages/Cilica.OptimizerTask/0.15.0-preview) 按已确认版本作为预览构建工具接入，不改变稳定 .NET SDK 基线。根配置设置 `PrivateAssets=all` 与 `CilicaAllMethods=true`，覆盖 Server、Core、ServiceDefaults、AppHost、配置 SDK、示例及测试程序集中的方法；实际可转换范围由优化器支持能力决定。遵循包默认的 Release 优化、Debug 不优化行为，可通过 `-p:RunCilica=false` 临时关闭以定位差异。优化产物须执行 Release 行为回归，构建与测试通过不代表已经证明性能提升；验证入口见 [构建与验证](local-development.md#构建与验证)。
+[Cilica.OptimizerTask](https://www.nuget.org/packages/Cilica.OptimizerTask/0.20.8-preview) 按已确认版本作为预览构建工具接入，不改变稳定 .NET SDK 基线。根配置设置 `PrivateAssets=all` 与 `CilicaAllMethods=true`，覆盖 Server、Core、ServiceDefaults、AppHost、配置 SDK、示例及测试程序集中的方法；实际可转换范围由优化器支持能力决定。遵循包默认的 Release 优化、Debug 不优化行为，可通过 `-p:RunCilica=false` 临时关闭以定位差异。优化产物须执行 Release 行为回归，构建与测试通过不代表已经证明性能提升；验证入口见 [构建与验证](local-development.md#构建与验证)。
 
 包引用设置 `ExcludeAssets=contentFiles`，保留构建目标但不编译包附带的 `Cilica.Attributes` 特性源码。全方法模式无需这些特性；避免在多个程序集引入同名公开类型，并保持 OpenAPI 文档生成兼容。若后续需要按特性排除个别方法，应先重新验证特性分发与 OpenAPI 行为。
+
+Cilica `0.20.8-preview` 的跨程序集内联需要真实方法实现。根构建目标在优化器解析完成后映射框架引用目录，保留现有 NuGet 与项目引用顺序；不改变 C# 编译引用，也不修改第三方包文件。执行优化的环境必须安装与所用 .NET / ASP.NET Core 引用包版本对应的共享运行时，不能将只有占位方法体的引用程序集用于内联。
 
 前端 npm 依赖继续由 `src/frontend/package.json` 与 `package-lock.json` 管理；其 `.esproj` 的 MSBuild SDK 版本由 `global.json` 管理。SDK 选择与目标框架分别维护；`version` 必须填写完整 SDK 版本，`latestMinor` 允许同一大版本内后续小版本、feature band 和补丁，选择已安装且不低于 10.0.300 的最高稳定版 10.x，不跨到 .NET 11，也不自动安装 SDK。该策略不改变 `msbuild-sdks` 中单独指定的项目 SDK 版本。
 
@@ -62,7 +65,9 @@ EF 命令行工具固定在 [.NET 工具清单](../.config/dotnet-tools.json)，
 
 配置机制参考 [NuGet CPM](https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management)、[MSBuild 目录配置](https://learn.microsoft.com/en-us/visualstudio/msbuild/customize-by-directory)、[global.json](https://learn.microsoft.com/en-us/dotnet/core/tools/global-json) 与 [NuGet 配置](https://learn.microsoft.com/en-us/nuget/reference/nuget-config-file)。
 
-SDK 必要的 `Microsoft.Extensions.*` 依赖沿用 10.0.12 并集中管理；SDK 自动化项目同时通过 `Aspire.Hosting.Testing` 13.5.4 验证可选示例的真实进程编排。测试支持不进入 SDK 发布包，现有 xUnit v3 与原生 MTP 命令模式保持不变。
+SDK 必要的 `Microsoft.Extensions.*` 依赖沿用 10.0.14 并集中管理；SDK 自动化项目同时通过 `Aspire.Hosting.Testing` 13.6.5 验证可选示例的真实进程编排。测试支持不进入 SDK 发布包，现有 xUnit v3 与原生 MTP 命令模式保持不变。
+
+Aspire SDK、JavaScript 集成与测试包统一使用 `13.6.5`，修复 Hosting 与 Dashboard 的已知漏洞；其传递依赖将 MessagePack 提升到 `2.5.307`，覆盖 [GHSA-qhrr-8q5h-9q3h](https://github.com/advisories/GHSA-qhrr-8q5h-9q3h) 的修复版本。Microsoft.Extensions 基础包统一使用 `10.0.14`，满足 Aspire 测试依赖的最低要求；不向业务 Server 或配置 SDK 添加 MessagePack 直接依赖，不抑制 NuGet 漏洞审计。
 
 ## 采用上游技能时的项目约束
 

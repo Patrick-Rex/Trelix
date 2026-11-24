@@ -212,11 +212,13 @@ dotnet build .\Trelix.slnx --nologo -v:q -clp:ErrorsOnly
 
 按根指引只读取 error 与退出码；子构建有额外输出时存临时日志，仅提取 error。按修改范围缩小到相关项目，具体命令见 [Server](../src/backend/Trelix.Server/AGENTS.md#验证)、[ServiceDefaults](../src/backend/Trelix.ServiceDefaults/AGENTS.md) 和 [AppHost](../src/Trelix.AppHost/AGENTS.md) 指引。
 
-所有 C# 项目通过根配置接入 Cilica `0.15.0-preview`，设置 `CilicaAllMethods=true`，默认只在 Release 构建时执行 IL 优化；普通 Debug 构建不会覆盖优化产物的验证。检查优化接入时执行：
+所有 C# 项目通过根配置接入 Cilica `0.20.8-preview`，设置 `CilicaAllMethods=true`，默认只在 Release 构建时执行 IL 优化；普通 Debug 构建不会覆盖优化产物的验证。检查优化接入时执行：
 
 ```powershell
 dotnet build .\Trelix.slnx -c Release --nologo -v:q -clp:ErrorsOnly
 ```
+
+优化时根构建目标将 .NET / ASP.NET Core 引用包目录映射到同版本的共享运行时目录。若报告缺少运行时实现目录，通过 `dotnet --list-runtimes` 核对并安装与构建引用包匹配的运行时，再重建；不通过删除目录检查或重新使用引用程序集绕过。
 
 随后按下文 [SDK 与示例自动化测试](#sdk-与示例自动化测试) 对当前 Release 产物执行两个测试项目。需要定位优化前后差异时，可追加 `-p:RunCilica=false` 并以 `-t:Rebuild` 重新构建；重新启用优化时同样重建，避免沿用另一模式的产物。配置范围见 [技术基线](development-baseline.md#net-统一配置)，性能结论仍遵循 [性能变更验证](quality.md#性能变更验证)。
 
@@ -255,4 +257,4 @@ dotnet test --project .\tests\Trelix.Server.Tests\Trelix.Server.Tests.csproj -c 
 dotnet test --project .\tests\Trelix.Extensions.Configuration.Tests\Trelix.Extensions.Configuration.Tests.csproj -c Release --no-build --verbosity quiet
 ```
 
-构建子进程输出按根指引保存临时日志后仅提取 error；测试检查实际数量与失败详情。SDK 测试包括受控 HTTP 传输、真实 Kestrel/SQLite 的示例停机恢复，以及 Aspire 13.5.4 的可选示例真实进程编排。Aspire 测试需要本机开发证书和对应运行组件，前端资源显式保持停止；测试自动清理所启动的宿主与独立数据目录。配置优先级测试使用工作区内 JSON 源代替 User Secrets 文件，不读取本机真实机密。
+构建子进程输出按根指引保存临时日志后仅提取 error；测试检查实际数量与失败详情。SDK 测试包括受控 HTTP 传输、真实 Kestrel/SQLite 的示例停机恢复，以及 Aspire 13.6.5 的可选示例真实进程编排。Aspire 测试需要本机开发证书和对应运行组件，前端资源显式保持停止；测试自动清理所启动的宿主与独立数据目录。配置优先级测试使用工作区内 JSON 源代替 User Secrets 文件，不读取本机真实机密。

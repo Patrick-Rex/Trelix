@@ -1,0 +1,17 @@
+<Project>
+  <!-- Cilica 0.20.8 maps NETCore reference packs, but can inline ASP.NET reference stubs. -->
+  <Target Name="ResolveCilicaRuntimeReferences" AfterTargets="_ResolveCilica"
+          Condition="'$(MSBuildProjectExtension)' == '.csproj' and '$(RunCilica)' == 'true'">
+    <ItemGroup>
+      <_CilicaRuntimeReference Include="@(AsmRefPaths)">
+        <ImplementationPath>$([System.Text.RegularExpressions.Regex]::Replace($([System.String]::Copy('%(Identity)').Replace('\', '/')), '/packs/(Microsoft\.(?:NETCore|AspNetCore)\.App)\.Ref/([^/]+)/ref/[^/]+/?$', '/shared/$1/$2/'))</ImplementationPath>
+      </_CilicaRuntimeReference>
+    </ItemGroup>
+    <Error Condition="!Exists('%(_CilicaRuntimeReference.ImplementationPath)')"
+           Text="Cilica requires the runtime implementation matching each reference pack. Missing directory: %(_CilicaRuntimeReference.ImplementationPath)" />
+    <PropertyGroup>
+      <JoinedAsmRefPaths>@(_CilicaRuntimeReference -> '&quot;%(ImplementationPath)&quot;', ' ')</JoinedAsmRefPaths>
+      <ResolverPathsArg>-r $(JoinedAsmRefPaths.Replace('\&quot;', '&quot;')) --no-resolver-fallback</ResolverPathsArg>
+    </PropertyGroup>
+  </Target>
+</Project>
